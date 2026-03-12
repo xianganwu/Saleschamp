@@ -25,9 +25,15 @@ function findVoice(
 function splitIntoSentences(text: string): string[] {
   const trimmed = text.trim();
   if (!trimmed) return [];
-  // Split after sentence-ending punctuation followed by whitespace
-  const sentences = trimmed.split(/(?<=[.!?])\s+/);
-  return sentences.filter((s) => s.length > 0);
+  // Split on sentence-ending punctuation followed by whitespace.
+  // Uses capture group instead of lookbehind for browser compatibility.
+  const parts = trimmed.split(/([.!?])\s+/);
+  const sentences: string[] = [];
+  for (let i = 0; i < parts.length; i += 2) {
+    const sentence = parts[i] + (parts[i + 1] || '');
+    if (sentence.trim()) sentences.push(sentence.trim());
+  }
+  return sentences.length > 0 ? sentences : [trimmed];
 }
 
 export interface UseSpeechSynthesisReturn {
@@ -87,6 +93,12 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
         if (sentences.length === 0) {
           resolve();
           return;
+        }
+
+        // Ensure voices are loaded before speaking
+        if (voicesRef.current.length === 0) {
+          const fresh = window.speechSynthesis.getVoices();
+          if (fresh.length > 0) voicesRef.current = fresh;
         }
 
         const voice = findVoice(voicesRef.current, voiceConfig.preferredVoices);

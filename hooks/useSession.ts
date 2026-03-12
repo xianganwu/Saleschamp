@@ -71,8 +71,8 @@ export function useSession(): UseSessionReturn {
 
       try {
         await synthesis.speak(text, persona?.voiceConfig);
-      } catch {
-        console.error('TTS playback failed, continuing');
+      } catch (err) {
+        console.error('TTS playback failed:', err);
       }
 
       if (isComplete) {
@@ -187,8 +187,9 @@ export function useSession(): UseSessionReturn {
 
       try {
         await synthesis.speak(intro, persona.voiceConfig);
-      } catch {
-        console.error('Intro TTS failed, continuing');
+      } catch (err) {
+        console.error('Intro TTS failed:', err);
+        setError('Audio playback failed. Check your browser supports speech synthesis.');
       }
 
       store.setTurnState('rep');
