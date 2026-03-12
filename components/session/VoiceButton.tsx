@@ -144,10 +144,10 @@ export function VoiceButton({
   const mode = getMode(turnState, isListening);
   const config = modeConfig[mode];
   const disabled = mode === 'waiting' || mode === 'processing';
+  const textDisabled = turnState !== 'rep';
 
+  // Text-only mode (no mic available)
   if (!voiceSupported && onSubmitText) {
-    const textDisabled = turnState !== 'rep';
-
     return (
       <div className="flex flex-col items-center gap-3">
         {turnState === 'processing' && (
@@ -160,7 +160,7 @@ export function VoiceButton({
           <p className="text-sm text-white/50">Prospect is speaking...</p>
         )}
         {turnState === 'rep' && (
-          <p className="text-sm font-medium text-accent">Your turn. Respond to the objection:</p>
+          <p className="text-sm font-medium text-accent">Your turn:</p>
         )}
         <TextInput onSubmit={onSubmitText} disabled={textDisabled} />
       </div>
@@ -174,7 +174,8 @@ export function VoiceButton({
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <div className="relative flex items-center justify-center" style={{ width: 100, height: 100 }}>
+      {/* Mic button — smaller on mobile */}
+      <div className="relative flex items-center justify-center h-[72px] w-[72px] sm:h-[100px] sm:w-[100px]">
         {mode === 'recording' && <RippleRings color="border-danger/40" />}
         {mode === 'ready' && <RippleRings color="border-primary/25" />}
         {mode === 'processing' && <Spinner />}
@@ -187,6 +188,7 @@ export function VoiceButton({
           transition={{ type: 'spring', stiffness: 400, damping: 22 }}
           className={`
             relative z-10 flex items-center justify-center
+            h-[56px] w-[56px] sm:h-[80px] sm:w-[80px]
             rounded-full transition-colors duration-300
             disabled:cursor-not-allowed
             focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary
@@ -194,7 +196,6 @@ export function VoiceButton({
             ${mode === 'ready' ? 'shadow-lg shadow-primary/30' : ''}
             ${mode === 'recording' ? 'shadow-lg shadow-danger/30' : ''}
           `}
-          style={{ width: 80, height: 80 }}
           aria-label={config.label}
         >
           <AnimatePresence mode="wait">
@@ -206,12 +207,12 @@ export function VoiceButton({
               transition={{ type: 'spring', stiffness: 500, damping: 25 }}
             >
               {mode === 'waiting' && (
-                <div className="h-6 w-6 rounded-full border-2 border-white/20" />
+                <div className="h-5 w-5 sm:h-6 sm:w-6 rounded-full border-2 border-white/20" />
               )}
-              {mode === 'ready' && <MicIcon className="w-8 h-8 text-white" />}
-              {mode === 'recording' && <StopIcon className="w-7 h-7 text-white" />}
+              {mode === 'ready' && <MicIcon className="w-6 h-6 sm:w-8 sm:h-8 text-white" />}
+              {mode === 'recording' && <StopIcon className="w-6 h-6 sm:w-7 sm:h-7 text-white" />}
               {mode === 'processing' && (
-                <div className="w-6 h-6 rounded-full border-3 border-white/20 border-t-white animate-spin" />
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border-3 border-white/20 border-t-white animate-spin" />
               )}
             </motion.div>
           </AnimatePresence>
@@ -245,6 +246,11 @@ export function VoiceButton({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Text input — always available alongside mic */}
+      {onSubmitText && mode !== 'recording' && (
+        <TextInput onSubmit={onSubmitText} disabled={textDisabled} />
+      )}
     </div>
   );
 }

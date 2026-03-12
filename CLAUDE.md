@@ -34,42 +34,43 @@ The core goal: build *muscle memory* for handling the toughest objections in rea
 ```
 sales-champ/
 ├── app/
-│   ├── layout.tsx              # Root layout, fonts, global styles
+│   ├── layout.tsx              # Root layout, fonts (Inter, JetBrains Mono)
+│   ├── globals.css             # Tailwind + CSS theme variables
 │   ├── page.tsx                # Home / scenario selector screen
 │   ├── session/
-│   │   └── page.tsx            # Main sparring arena
-│   └── results/
-│       └── page.tsx            # Feedback + scorecard screen
+│   │   └── page.tsx            # Main sparring arena (Begin Session + voice/text)
+│   ├── results/
+│   │   └── page.tsx            # Feedback + scorecard screen
+│   └── api/
+│       ├── session/route.ts    # Prospect response API (Claude)
+│       └── feedback/route.ts   # Coach feedback API (Claude)
 ├── components/
 │   ├── ui/
-│   │   ├── Button.tsx          # Reusable animated button
-│   │   ├── Card.tsx            # Scenario card component
-│   │   └── ProgressBar.tsx     # Round progress indicator
+│   │   └── Button.tsx          # Reusable animated button (Framer Motion)
 │   ├── session/
-│   │   ├── SparringArena.tsx   # Main session layout
-│   │   ├── ProspectAvatar.tsx  # Animated prospect persona
-│   │   ├── VoiceButton.tsx     # Mic button with state
-│   │   ├── TranscriptBubble.tsx # Chat-style transcript bubbles
-│   │   └── RoundIndicator.tsx  # Shows current round
+│   │   ├── ProspectAvatar.tsx  # Animated prospect persona with speaking/thinking states
+│   │   ├── VoiceButton.tsx     # Mic button + text input with responsive mobile layout
+│   │   ├── TranscriptBubble.tsx # Chat-style transcript bubbles (left/right aligned)
+│   │   └── RoundIndicator.tsx  # Shows current round with animated dots
 │   └── home/
-│       ├── ScenarioGrid.tsx    # Grid of selectable scenarios
-│       ├── ScenarioCard.tsx    # Individual scenario card
-│       └── PersonaSelector.tsx # Choose prospect persona
+│       ├── ScenarioGrid.tsx    # Grid of selectable scenarios by category
+│       ├── ScenarioCard.tsx    # Individual scenario card with selection state
+│       └── PersonaSelector.tsx # Choose prospect persona (3 personas)
 ├── lib/
-│   ├── session-engine.ts       # Claude API integration
-│   ├── speech.ts               # Web Speech API wrapper
+│   ├── session-engine.ts       # Client-side API caller with retry logic
 │   ├── scenarios.ts            # Scenario bank with categories
-│   ├── personas.ts             # Prospect persona definitions
+│   ├── personas.ts             # 3 prospect persona definitions
 │   ├── store.ts                # Zustand session state store
-│   └── prompts.ts              # All Claude system prompts
+│   ├── prompts.ts              # Claude system prompts (prospect + coach)
+│   └── sounds.ts               # Web Audio API synthesized sound effects (ding, whoosh)
 ├── hooks/
-│   ├── useSpeechRecognition.ts # Voice input hook
-│   ├── useSpeechSynthesis.ts   # Voice output hook
+│   ├── useSpeechRecognition.ts # Voice input hook (Web Speech API)
+│   ├── useSpeechSynthesis.ts   # Voice output hook with Chrome workarounds
 │   └── useSession.ts           # Main session orchestration hook
 ├── types/
 │   └── session.ts              # All TypeScript types
-└── public/
-    └── sounds/                 # UI sound effects (optional)
+└── scripts/
+    └── simulate.ts             # CLI simulation for testing without voice
 ```
 
 ---
@@ -80,24 +81,56 @@ sales-champ/
 HOME SCREEN
   -> Browse scenario grid (organized by competitive category)
   -> Click a scenario card
-  -> Choose prospect persona (different buyer types)
+  -> Choose prospect persona (3 buyer types)
   -> "Start Session" button
 
+BEGIN SESSION SCREEN
+  -> "Begin Session" button (required for user gesture to enable TTS)
+  -> Optional "Test Audio" diagnostic button
+
 SPARRING SESSION
-  -> Prospect introduces themselves, states their situation and objection (TTS)
-  -> Round 1 (Opening): Rep responds (STT) -> Prospect pushes back (TTS)
-  -> Round 2 (Deep Dive): Rep goes deeper (STT) -> Prospect challenges further (TTS)
-  -> Round 3 (Close): Rep delivers final pitch (STT) -> Prospect gives final reaction (TTS)
+  -> Prospect introduces themselves (TTS + transcript bubble)
+  -> Round 1 (Opening): Rep responds via voice or text -> Prospect pushes back (TTS)
+  -> Round 2 (Deep Dive): Rep goes deeper -> Prospect challenges further (TTS)
+  -> Round 3 (Close): Rep delivers final pitch -> Prospect gives final reaction (TTS)
   -> "See Your Scorecard" button
 
 RESULTS SCREEN
-  -> Full conversation transcript
-  -> AI Coach scorecard across 5 dimensions
+  -> Star rating (average of 5 dimensions)
+  -> Score bars for each dimension (1-5)
   -> Two specific strengths identified
   -> One targeted improvement with example phrasing
-  -> Overall readiness rating (1-5 stars)
-  -> "Run Again" (same scenario, refine approach) or "New Scenario"
+  -> Overall readiness summary
+  -> Expandable full conversation transcript
+  -> "Run Again" (same scenario) or "New Scenario"
 ```
+
+---
+
+## Platform Support
+
+### Desktop (Full Experience)
+- **Chrome / Edge**: Full voice input + output. Recommended browser.
+- **Firefox**: No Web Speech API support. Text-only input, TTS may be limited.
+- **Safari**: Text-only input. TTS works but `SpeechRecognition` is unsupported.
+
+### Mobile (Supported)
+- **Android Chrome**: Full voice input + output. Same experience as desktop Chrome.
+- **iOS Safari / iOS Chrome**: Text-only input. `SpeechRecognition` is not available on any iOS browser (WebKit limitation). `SpeechSynthesis` works but requires a user gesture per `speak()` call.
+
+### Responsive Design
+All pages are fully responsive with mobile-first breakpoints:
+- **Home page**: Scenario grid stacks to single column on mobile (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3`)
+- **Session page**: Compact header, smaller mic button on mobile (`56px` vs `80px` desktop), text input always available alongside mic
+- **Results page**: Score bars and action buttons stack vertically on mobile (`flex-col sm:flex-row`)
+- **VoiceButton**: Responsive sizing throughout; text input shown alongside mic when not recording, so users can always type regardless of voice support
+- All interactive elements meet 44x44px minimum touch targets
+- Uses `h-dvh` / `min-h-dvh` for proper mobile viewport handling (accounts for browser chrome)
+
+### Browser Compatibility Notices
+- Home page shows a dismissible banner when `SpeechRecognition` is unavailable
+- Session page shows a banner when voice is unavailable, with text input as fallback
+- The app never blocks usage -- text input is always available as a fallback
 
 ---
 
@@ -105,418 +138,236 @@ RESULTS SCREEN
 
 Scenarios are organized by competitive category. Each represents a real objection AAP sales specialists encounter in the field.
 
-### vs. Upstream / Open Source
+### vs. Upstream / Open Source (3 scenarios)
+1. "Ansible CLI is free -- why would we pay for AAP?"
+2. "We're running AWX in production and it does everything we need."
+3. "We don't need enterprise support -- our team handles open source just fine."
 
-1. **"Ansible CLI is free -- why would we pay for AAP?"**
-   The most common objection. Prospect uses community Ansible for ad-hoc tasks and sees no reason to pay.
-   *Key angles: governance, RBAC, audit trails, automation controller, certified content, lifecycle support, automation mesh for scale.*
+### vs. Competitive Tooling (4 scenarios)
+4. "We standardized on Terraform for all our infrastructure automation."
+5. "We have Puppet and it works fine for configuration management."
+6. "Our cloud provider's native tools handle everything."
+7. "ServiceNow already handles our IT automation and ITSM workflows."
 
-2. **"We're running AWX in production and it does everything we need."**
-   Prospect self-hosts AWX and considers it equivalent to AAP's automation controller.
-   *Key angles: no enterprise support/SLAs, no automation mesh, no Event-Driven Ansible, no certified content collections, no security certifications (FIPS, CVE response SLAs), no Lightspeed AI, unpredictable upstream lifecycle.*
+### Value & Business Justification (3 scenarios)
+8. "The subscription cost is too high -- we can't justify the budget."
+9. "We're early in our automation journey -- we're not ready for a platform."
+10. "We can't show ROI on automation to our leadership."
 
-3. **"We don't need enterprise support -- our team handles open source just fine."**
-   Prospect has strong internal engineering and questions the value of a subscription.
-   *Key angles: SLA-backed CVE response, certified and tested content, lifecycle predictability, opportunity cost of internal support vs. innovation, access to Red Hat ecosystem expertise.*
-
-### vs. Competitive Tooling
-
-4. **"We standardized on Terraform for all our infrastructure automation."**
-   Prospect uses Terraform extensively and sees it as the single automation answer.
-   *Key angles: Terraform = provisioning (Day 0/1), Ansible = configuration + ongoing operations (Day 1/2), complementary positioning, AAP excels at network/security/cloud operations automation where Terraform has gaps, multi-vendor device support.*
-
-5. **"We have Puppet and it works fine for configuration management."**
-   Prospect has an established Puppet (or Chef) deployment and sees no reason to change.
-   *Key angles: agentless vs. agent-based (operational overhead, security surface), YAML vs. Ruby/DSL learning curve, broader automation scope beyond config management, community momentum toward Ansible, modernization without rip-and-replace.*
-
-6. **"Our cloud provider's native tools handle everything -- AWS Systems Manager, Azure Automation."**
-   Prospect is deep in a single cloud and sees native tools as sufficient.
-   *Key angles: multi-cloud and hybrid cloud consistency, vendor lock-in risk, on-prem + edge + cloud unified automation, broader scope than cloud-native tools, single automation language across environments.*
-
-7. **"ServiceNow already handles our IT automation and ITSM workflows."**
-   Prospect views ServiceNow as their automation layer.
-   *Key angles: complementary positioning (AAP as execution engine behind ServiceNow), deeper infrastructure/network/cloud automation capabilities, pre-built ServiceNow integration, execution at the edge where ServiceNow can't reach.*
-
-### Value & Business Justification
-
-8. **"The subscription cost is too high -- we can't justify the budget."**
-   Classic budget objection, especially in cost-cutting environments.
-   *Key angles: TCO analysis (hidden costs of DIY: staffing, downtime, security incidents), ROI from automation (time savings, error reduction), risk mitigation value, compliance cost avoidance, start-small subscription tiers.*
-
-9. **"We're early in our automation journey -- we're not ready for a platform."**
-   Prospect feels AAP is overkill for their current maturity level.
-   *Key angles: AAP grows with you, start with automation controller basics, built-in best practices accelerate maturity, Lightspeed AI lowers content creation barrier, training and certification paths, crawl-walk-run adoption framework.*
-
-10. **"We can't show ROI on automation to our leadership."**
-    Prospect struggles to build an internal business case.
-    *Key angles: Red Hat ROI frameworks and calculators, customer reference stories with quantified outcomes, time-to-value metrics, help them build the business case (partner, don't just sell).*
-
-### Technical & Architecture Objections
-
-11. **"We're moving everything to Kubernetes -- shouldn't we use K8s-native tooling?"**
-    Prospect is deep into cloud-native transformation and questions Ansible's relevance.
-    *Key angles: AAP runs on OpenShift/K8s (containerized AAP), automates K8s cluster lifecycle and Day 2 operations, manages infrastructure around and beneath K8s, Operator-based deployment, complements K8s-native tools rather than competing.*
-
-12. **"Ansible is too slow for our scale -- we've had performance issues."**
-    Prospect has hit scaling walls with community Ansible.
-    *Key angles: automation mesh solves horizontal scaling, execution environments provide consistency, containerized architecture, strategy/free patterns for parallelism, AAP is architecturally different from running ansible-playbook on a single control node.*
-
-13. **"Our security team has concerns about agentless SSH-based automation."**
-    Prospect's security org pushes back on SSH-based management.
-    *Key angles: automation mesh uses receptor network (not direct SSH from a single point), centralized credential management (no credentials on disk), RBAC and approval workflows, comprehensive audit logging, FIPS 140-2 compliance, reduced attack surface vs. persistent agents on every managed node.*
-
-14. **"We just need a job scheduler, not a whole automation platform."**
-    Prospect thinks cron or a simple scheduler is sufficient.
-    *Key angles: governance and auditability beyond cron, RBAC (who can run what, where), error handling and notifications, workflow orchestration (conditional logic, approvals), self-service automation portal for non-experts, visibility and reporting across the organization.*
-
-15. **"AI-generated automation is unreliable -- we don't trust Lightspeed for production."**
-    Prospect is skeptical of Ansible Lightspeed with IBM watsonx Code Assistant.
-    *Key angles: Lightspeed as productivity accelerator not replacement for human review, trained on curated Ansible content (not arbitrary code), generates content recommendations that humans approve, accelerates onboarding for less experienced team members, content quality analysis built in.*
+### Technical & Architecture (5 scenarios)
+11. "We're moving everything to Kubernetes -- shouldn't we use K8s-native tooling?"
+12. "Ansible is too slow for our scale -- we've had performance issues."
+13. "Our security team has concerns about agentless SSH-based automation."
+14. "We just need a job scheduler, not a whole automation platform."
+15. "AI-generated automation is unreliable -- we don't trust Lightspeed for production."
 
 ---
 
 ## Prospect Personas
 
-Each persona represents a different buyer archetype with distinct motivations, communication styles, and hot buttons. The rep selects a persona before starting, which changes how the AI argues.
+Three distinct buyer archetypes. Each changes how the AI argues during sessions.
 
 ### Morgan Chen -- VP of Infrastructure
 - **Role:** Budget holder, reports to CIO
 - **Style:** Data-driven, bottom-line focused, slightly impatient
 - **Hot buttons:** Cost, ROI, headcount efficiency, risk to uptime
-- **What convinces them:** Hard numbers, TCO comparisons, customer case studies with quantified outcomes, risk framing ("what does a 4-hour outage cost you?")
-- **Voice cues:** Measured, direct, occasionally skeptical sighs
+- **Convinced by:** Hard numbers, TCO comparisons, customer case studies, risk framing
+- **Voice:** pitch 0.95, rate 1.1 (slightly fast -- impatient executive)
 
 ### Jamie Torres -- Senior Platform Engineer
 - **Role:** Technical evaluator, open source contributor
 - **Style:** Technically deep, community-oriented, allergic to marketing speak
 - **Hot buttons:** Technical merit, open source integrity, engineering velocity, no vendor lock-in
-- **What convinces them:** Honest technical differentiation, upstream contribution record, architecture diagrams, "show me, don't tell me"
-- **Voice cues:** Casual, occasionally challenges with "but actually..."
-
-### Casey Williams -- IT Director, Operations
-- **Role:** Runs day-to-day IT ops, manages a team of 15
-- **Style:** Risk-averse, pragmatic, values stability over innovation
-- **Hot buttons:** Disruption to current workflows, migration effort, team retraining, reliability
-- **What convinces them:** Smooth migration paths, coexistence strategies, customer stories from similar environments, training support
-- **Voice cues:** Cautious, asks "what if" questions, references past vendor disappointments
-
-### Riley Park -- Cloud Architect
-- **Role:** Designs cloud strategy, reports to CTO
-- **Style:** Forward-looking, opinionated, cloud-native mindset
-- **Hot buttons:** Multi-cloud consistency, IaC best practices, developer experience, modern toolchain fit
-- **What convinces them:** Hybrid/multi-cloud positioning, integration with cloud-native stack, automation mesh architecture, EDA capabilities
-- **Voice cues:** Enthusiastic about tech, drops references to CNCF projects and cloud services
+- **Convinced by:** Honest technical differentiation, upstream contribution record, architecture specifics
+- **Voice:** pitch 1.0, rate 0.95 (measured, thoughtful engineer)
 
 ### Sam Okafor -- CISO
 - **Role:** Owns security and compliance posture
 - **Style:** Methodical, compliance-focused, zero-trust mindset
 - **Hot buttons:** Attack surface, credential management, audit trails, regulatory compliance
-- **What convinces them:** FIPS certifications, SOC 2 readiness, RBAC details, credential isolation, CVE response SLAs, comparison of agent vs. agentless security surface
-- **Voice cues:** Precise, asks pointed questions, wants specifics not generalizations
-
----
-
-## Claude API -- System Prompts
-
-### Main Session Prompt (in `lib/prompts.ts`)
-
-```typescript
-export const PROSPECT_SYSTEM_PROMPT = (
-  scenario: string,
-  persona: Persona,
-  scenarioContext: string
-) => `
-You are roleplaying as ${persona.name}, ${persona.title}. You are in a meeting with a Red Hat sales specialist who is pitching Ansible Automation Platform (AAP).
-
-YOUR PERSONA:
-- Role: ${persona.role}
-- Communication style: ${persona.style}
-- What matters to you: ${persona.hotButtons}
-- You are convinced by: ${persona.convincedBy}
-
-SCENARIO: "${scenario}"
-CONTEXT: ${scenarioContext}
-
-YOUR OBJECTIVE:
-- You are a realistic, tough-but-fair prospect -- not impossibly difficult
-- You have genuine concerns based on your persona and the scenario
-- You push back with specifics when the rep gives vague or generic answers
-- You acknowledge good points when the rep makes them ("Okay, that's helpful" or "I hadn't thought of that")
-- You get increasingly interested if the rep demonstrates real expertise and listens to your concerns
-- You stay skeptical if the rep sounds scripted or ignores what you said
-
-CONVERSATION RULES:
-- Keep each response to 3-5 sentences MAXIMUM
-- Stay in character throughout -- react as your persona naturally would
-- Reference your actual environment ("We currently run..." / "My team of 15..." / "Our compliance audit last quarter...")
-- If the rep makes a strong point, acknowledge it before raising your next concern
-- If the rep gives a weak or generic answer, press harder on the same point
-- Ask follow-up questions that a real buyer would ask
-
-ROUND STRUCTURE:
-- Round 1: State your situation and primary objection clearly
-- Round 2: Push back on their response -- go deeper, ask for specifics or proof points
-- Round 3: Give a realistic final reaction -- if convinced, say what next step you'd consider; if not, say what's still missing
-
-TONE:
-- Professional but human -- you're a real person, not a robot
-- Match your persona's communication style
-- Never break character or reference that this is a simulation
-
-After round 3 (the final round), end your response with exactly this tag: [SESSION_COMPLETE]
-`;
-
-export const COACH_FEEDBACK_PROMPT = (transcript: string, scenario: string, persona: string) => `
-You are an expert sales coach reviewing a practice objection handling session.
-
-SCENARIO: "${scenario}"
-PROSPECT PERSONA: ${persona}
-
-FULL TRANSCRIPT:
-${transcript}
-
-Score the rep on each dimension (1-5 scale) and provide your assessment:
-
-1. **Objection Acknowledgment** - Did they validate the prospect's concern before countering? Did they listen and reference what the prospect actually said?
-
-2. **Value Articulation** - Did they clearly connect AAP capabilities to business outcomes the prospect cares about? Or did they just list features?
-
-3. **Competitive Accuracy** - Were their claims about AAP vs. the alternative technically accurate and honest? Did they avoid badmouthing competitors?
-
-4. **Discovery & Listening** - Did they ask questions to understand the prospect's specific situation? Or did they just pitch at them?
-
-5. **Conversation Advancement** - Did they move the conversation toward a logical next step (demo, POC, technical deep-dive, reference call)?
-
-FORMAT YOUR RESPONSE EXACTLY AS:
-SCORES: [n,n,n,n,n]
-
-STRENGTHS:
-- [Specific thing they did well, with a quote from the transcript] (1-2 sentences)
-- [Second specific strength] (1-2 sentences)
-
-IMPROVE:
-- [One targeted, actionable improvement with an example of what they could have said instead] (2-3 sentences)
-
-OVERALL: [A one-sentence summary of their readiness level for this scenario]
-
-Keep the entire response under 200 words. Be direct and specific -- generic praise is useless. Reference actual moments from the conversation.
-`;
-```
+- **Convinced by:** FIPS certifications, SOC 2 readiness, RBAC details, credential isolation, CVE response SLAs
+- **Voice:** pitch 0.85, rate 0.95 (deep, precise)
 
 ---
 
 ## Voice Implementation
 
 ### Speech Recognition (`hooks/useSpeechRecognition.ts`)
-
-```typescript
-// Key implementation notes:
-// - Always check browser support before initializing
-// - Set interimResults: true for live transcript display
-// - Use continuous: false (single utterance per turn)
-// - Show visual feedback while mic is active
-// - Add 2s silence detection to auto-stop (longer than kids' app -- adults pause to think)
-// - DISABLE mic during prospect's speech to prevent echo
-// - Consider longer max recording time (30s vs. 15s) -- sales answers are longer
-```
+- Checks for `SpeechRecognition` or `webkitSpeechRecognition` at init
+- `continuous: true`, `interimResults: true` for live transcript display
+- 3.5s silence timeout auto-stops recording
+- Cleans up recognition instance on unmount
+- Returns `isSupported` flag used to toggle voice/text-only UI modes
 
 ### Speech Synthesis (`hooks/useSpeechSynthesis.ts`)
 
+This hook has extensive workarounds for Chrome/macOS TTS bugs:
+
+**Sentence splitting:**
 ```typescript
-// Key implementation notes:
-// - Load voices after 'voiceschanged' event fires
-// - Select voice based on persona (vary between personas for immersion)
-// - Fall back gracefully if preferred voice unavailable
-// - Dispatch event when speech ENDS so UI can re-enable mic
-// - Cancel any ongoing speech before starting new utterance
-// - Split long text at sentence boundaries for more natural delivery
+// Split on sentence-ending punctuation followed by whitespace.
+// Uses capture group -- NOT lookbehind (Safari < 16.4 throws SyntaxError on lookbehind)
+const parts = text.split(/([.!?])\s+/);
 ```
 
-### Persona Voice Configuration
-
+**Chrome/macOS keepalive workaround:**
+Chrome delegates TTS to macOS `AVSpeechSynthesizer`, which can hang without producing audio or firing `onend`. The fix is a periodic `pause()/resume()`:
 ```typescript
-const personaVoices: Record<PersonaId, VoiceConfig> = {
-  morgan_chen: {
-    pitch: 0.95,
-    rate: 1.1,      // slightly fast -- impatient executive
-    preferredVoices: ['Google US English', 'Microsoft Mark'],
-  },
-  jamie_torres: {
-    pitch: 1.0,
-    rate: 0.95,     // measured, thoughtful engineer
-    preferredVoices: ['Google UK English Male', 'Microsoft David'],
-  },
-  casey_williams: {
-    pitch: 0.9,
-    rate: 0.9,      // slower, deliberate ops manager
-    preferredVoices: ['Google US English', 'Microsoft Zira'],
-  },
-  riley_park: {
-    pitch: 1.05,
-    rate: 1.05,     // energetic cloud architect
-    preferredVoices: ['Google UK English Female', 'Microsoft Susan'],
-  },
-  sam_okafor: {
-    pitch: 0.85,
-    rate: 0.95,     // deep, precise CISO
-    preferredVoices: ['Google US English', 'Microsoft David'],
-  },
-};
+const keepAlive = setInterval(() => {
+  if (!window.speechSynthesis.speaking) { clearInterval(keepAlive); return; }
+  speechSynthesis.pause();
+  speechSynthesis.resume();
+}, 3_000);
 ```
+
+**Timeout guards (never let TTS hang the session):**
+- 15s global timeout across all sentences
+- 8s per-sentence timeout (skips to next sentence if one hangs)
+- `settled` boolean guard prevents double-resolution of the Promise
+
+**Cancel/speak race condition:**
+```typescript
+// Only delay after cancel() if speech was actually playing.
+// Otherwise call speak() immediately to preserve user gesture context.
+if (wasSpeaking) {
+  setTimeout(speakNext, 50);
+} else {
+  speakNext();
+}
+```
+
+**Audio diagnostic (`testAudio`):**
+Exposed via the session hook for a "Test Audio" button on the Begin Session screen. Returns voice count, voice names, and pass/fail status. Helps users diagnose TTS issues before starting a session.
+
+### User Gesture Requirement
+`speechSynthesis.speak()` requires a user gesture in Chrome. The session page uses a "Begin Session" button click to trigger the first `speak()` call. This replaced an earlier `useEffect`-based auto-start that broke TTS because it lacked gesture context.
 
 ### Turn-Taking State Machine
-
 ```
-IDLE
-  -> REP_TURN (mic enabled, recording indicator shown)
-    -> PROCESSING (spinner, mic disabled)
-      -> PROSPECT_TURN (persona avatar animates, TTS playing, mic disabled)
-        -> REP_TURN (loop)
-          -> FEEDBACK (after round 3)
+IDLE -> (Begin Session clicked)
+  -> PROSPECT (intro TTS plays, transcript bubble shown)
+    -> REP (mic enabled OR text input, "Your turn" indicator)
+      -> PROCESSING (spinner, API call to Claude)
+        -> PROSPECT (response TTS plays)
+          -> REP (loop, round advances)
+            -> FEEDBACK (after round 3, "See Your Scorecard")
 ```
 
 ---
 
-## UI/UX Design Principles
+## Session Orchestration (`hooks/useSession.ts`)
 
-### Color Palette
-```css
---color-primary: #EE0000;       /* Red Hat red -- used sparingly for CTAs and accents */
---color-primary-hover: #CC0000; /* darker red on hover */
---color-secondary: #4394E5;     /* professional blue -- trust, competence */
---color-accent: #F0AB00;        /* warm amber -- highlights, scores */
---color-dark: #151515;          /* near-black -- primary background */
---color-surface: #1E1E1E;       /* card backgrounds, elevated surfaces */
---color-surface-light: #2D2D2D; /* hover states, secondary surfaces */
---color-text: #E0E0E0;          /* primary text on dark backgrounds */
---color-text-muted: #8A8A8A;    /* secondary text */
---color-success: #3E8635;       /* positive scores, strengths */
---color-warning: #F0AB00;       /* mid-range scores */
---color-danger: #C9190B;        /* low scores, areas to improve */
-```
+Key behaviors:
+- `startSession`: Builds intro script from persona name/title, adds it as a transcript entry (so the intro is visible even if TTS fails), then speaks it via TTS
+- `submitRepArgument`: Adds rep entry to transcript, calls Claude API, adds prospect response to transcript, plays TTS, advances round or triggers feedback
+- `playProspectResponse`: Speaks prospect text, catches TTS errors non-fatally, then either advances to next round or calls feedback API
+- `voiceSupported`: True only when both `SpeechRecognition` and `SpeechSynthesis` are available
+- Sound effects: "ding" when it's the rep's turn, "whoosh" when prospect responds
 
-### Typography
-- Headings: `Inter` (weight 700) -- clean, professional, highly legible
-- Body: `Inter` (weight 400/500) -- consistent, modern
-- Monospace (scores, data): `JetBrains Mono` -- technical credibility
-- Import via Google Fonts in `layout.tsx`
+---
 
-### Animation Guidelines (Framer Motion)
-- Prospect avatar should have a subtle presence indicator when speaking (gentle pulse, not cartoonish)
-- Mic button should have a clean red ring animation when recording
-- Scenario cards should have a slight elevation + border glow on hover
-- Transcript bubbles should fade and slide in from left (prospect) or right (rep)
-- Round transitions should feel like a phase shift -- brief dimming and label change
-- Use `spring` physics with moderate damping (professional, not bouncy)
-- All animations should feel *polished and restrained*, not playful
+## Claude API -- System Prompts
 
-### Layout
-- Dark mode by default -- feels like a focused practice environment
-- Desktop-first design (sales reps primarily use laptops)
-- Wide transcript area with clear visual separation between speakers
-- Persistent round/phase indicator in top bar
-- Scenario and persona context always visible during session
+### Prospect Prompt (`lib/prompts.ts`)
+- Receives persona details, scenario, context, and current round number
+- Round 3 includes `[SESSION_COMPLETE]` tag instruction
+- Keeps responses to 3-5 sentences
+- Persona stays in character throughout
+- References realistic environment details
 
-### Accessibility
-- Large touch targets (min 44x44px) for all interactive elements
-- High contrast text (WCAG AA minimum, aim for AAA on critical elements)
-- Screen reader labels on all icon buttons
-- Keyboard navigation support throughout
-- Visible focus indicators
+### Coach Feedback Prompt (`lib/prompts.ts`)
+- Receives formatted transcript with round labels
+- Scores 5 dimensions (1-5 each): Objection Acknowledgment, Value Articulation, Competitive Accuracy, Discovery & Listening, Conversation Advancement
+- Returns structured format: `SCORES: [n,n,n,n,n]`, `STRENGTHS:`, `IMPROVE:`, `OVERALL:`
+- Fallback parsing in `app/api/feedback/route.ts` handles deviations from format
+
+---
+
+## API Routes
+
+### `POST /api/session`
+- Body: `{ messages, scenario, scenarioContext, personaId, round }`
+- Returns: `{ response: string, isComplete: boolean }`
+- Model: `claude-sonnet-4-6`, max_tokens: 200
+- `isComplete` derived from `[SESSION_COMPLETE]` tag presence
+- `maxDuration: 30` (Vercel serverless timeout)
+
+### `POST /api/feedback`
+- Body: `{ transcript, scenario, personaId }`
+- Returns: `{ scores: number[], strengths: string[], improvement: string, overall: string }`
+- Model: `claude-sonnet-4-6`, max_tokens: 350
+- Regex-based parsing with fallback defaults for each field
+
+### Client-side (`lib/session-engine.ts`)
+- `fetchWithRetry`: 2 retries with exponential backoff (500ms, 1000ms)
+- 4xx errors are not retried (client errors)
+- 5xx and network errors are retried
 
 ---
 
 ## State Management (Zustand -- `lib/store.ts`)
 
 ```typescript
-interface SessionStore {
-  // Setup
-  scenario: Scenario | null
-  persona: Persona | null
+interface SessionState {
+  scenario: Scenario | null;
+  persona: Persona | null;
+  currentRound: number;    // 1-3
+  maxRounds: 3;
+  turnState: TurnState;    // 'idle' | 'rep' | 'processing' | 'prospect' | 'feedback'
+  transcript: readonly SessionEntry[];
 
-  // Session state
-  currentRound: number    // 1-3
-  maxRounds: number       // 3
-  turnState: 'idle' | 'rep' | 'processing' | 'prospect' | 'feedback'
-
-  // Content
-  transcript: SessionEntry[]  // Full conversation history
-  scores: ScoreCard | null    // 5-dimension scoring after session
-
-  // Actions
-  setScenario: (scenario: Scenario) => void
-  setPersona: (persona: Persona) => void
-  addTranscriptEntry: (entry: SessionEntry) => void
-  advanceRound: () => void
-  setTurnState: (state: TurnState) => void
-  setScores: (scores: ScoreCard) => void
-  resetSession: () => void
-}
-
-interface ScoreCard {
-  objectionAcknowledgment: number   // 1-5
-  valueArticulation: number         // 1-5
-  competitiveAccuracy: number       // 1-5
-  discoveryAndListening: number     // 1-5
-  conversationAdvancement: number   // 1-5
-  strengths: string[]               // 2 specific strengths
-  improvement: string               // 1 targeted improvement
-  overall: string                   // Summary sentence
+  setScenario: (scenario: Scenario) => void;
+  setPersona: (persona: Persona) => void;
+  addTranscriptEntry: (entry: SessionEntry) => void;
+  advanceRound: () => void;
+  setTurnState: (state: TurnState) => void;
+  resetSession: () => void;
 }
 
 interface SessionEntry {
-  speaker: 'rep' | 'prospect'
-  content: string
-  round: number
-  timestamp: number
+  speaker: 'rep' | 'prospect';
+  text: string;
+  round: number;
+  timestamp: Date;
 }
 
-type TurnState = 'idle' | 'rep' | 'processing' | 'prospect' | 'feedback'
+type PersonaId = 'morgan_chen' | 'jamie_torres' | 'sam_okafor';
 ```
 
 ---
 
-## API Routes
+## UI/UX Design
 
-### `app/api/session/route.ts`
-
-```typescript
-// POST /api/session
-// Body: {
-//   messages: Message[],
-//   scenario: string,
-//   scenarioContext: string,
-//   persona: Persona,
-//   round: number
-// }
-// Returns: { response: string, isComplete: boolean }
-//
-// Notes:
-// - max_tokens: 200 for session turns (prospect responses should be concise)
-// - Full conversation history passed on each call
-// - isComplete derived from presence of [SESSION_COMPLETE] tag
+### Color Palette
+```css
+--color-primary: #EE0000;       /* Red Hat red -- CTAs and accents */
+--color-secondary: #4394E5;     /* Professional blue -- trust, prospect bubbles */
+--color-accent: #F0AB00;        /* Warm amber -- highlights, mid scores */
+--color-dark: #151515;          /* Near-black -- primary background */
+--color-surface: #1E1E1E;       /* Card backgrounds, elevated surfaces */
+--color-surface-light: #2D2D2D; /* Hover states, secondary surfaces */
+--color-success: #3E8635;       /* Positive scores, strengths */
+--color-danger: #C9190B;        /* Low scores, recording state */
 ```
 
-### `app/api/feedback/route.ts`
+### Typography
+- Headings & body: `Inter` -- clean, professional, highly legible
+- Monospace (scores): `JetBrains Mono` -- technical credibility
+- Loaded via `next/font/google` in `layout.tsx`
 
-```typescript
-// POST /api/feedback
-// Body: {
-//   transcript: SessionEntry[],
-//   scenario: string,
-//   persona: string
-// }
-// Returns: {
-//   scores: number[],       // [n,n,n,n,n] for the 5 dimensions
-//   strengths: string[],    // 2 items
-//   improvement: string,    // 1 item
-//   overall: string         // summary
-// }
-//
-// Notes:
-// - max_tokens: 350 for feedback (more detailed than session turns)
-// - Parse the structured response format from the prompt
-```
+### Animation (Framer Motion)
+- Spring physics with moderate damping (professional, not bouncy)
+- ProspectAvatar: gentle pulse when speaking, glow ring, animated sound bars
+- VoiceButton: ripple rings when recording/ready, spinner when processing
+- TranscriptBubble: slide in from left (prospect) or right (rep)
+- Score bars: staggered fill animation on results page
+- `prefers-reduced-motion` respected via CSS in `globals.css`
+
+### Sound Effects (`lib/sounds.ts`)
+- Synthesized via Web Audio API (no audio files needed)
+- "ding" (440-880Hz, 150ms): signals rep's turn
+- "whoosh" (600-200Hz, 200ms): prospect response incoming
+- Failures are never fatal (wrapped in try/catch)
 
 ---
 
@@ -529,92 +380,45 @@ ANTHROPIC_API_KEY=your_key_here
 
 ---
 
-## Agents Used in This Project
-
-This project was built using the following Claude Code sub-agents. Reference these when making changes:
-
-### 1. `architect-agent`
-Responsible for: Project scaffolding, Next.js config, TypeScript setup, folder structure, package.json dependencies.
-
-### 2. `ui-agent`
-Responsible for: All visual components, Tailwind styling, Framer Motion animations, prospect persona avatars, dark mode layout, scorecard visualization.
-
-### 3. `voice-agent`
-Responsible for: Web Speech API integration, turn-taking logic, persona-specific voice selection, mic state management, audio feedback.
-
-### 4. `session-engine-agent`
-Responsible for: Claude API integration, prompt engineering, conversation history management, feedback generation, score parsing.
-
-### 5. `state-agent`
-Responsible for: Zustand store, session loop logic, round progression, score management.
-
----
-
 ## Key Constraints & Gotchas
 
-1. **Web Speech API is Chrome/Edge only** -- show a clear browser compatibility notice for Firefox/Safari users
-2. **Voices load asynchronously** -- always wait for `speechSynthesis.onvoiceschanged` before attempting voice selection
-3. **Never run STT and TTS simultaneously** -- creates echo feedback; strictly enforce turn-taking
-4. **Claude API calls go server-side** -- never expose the API key in client code
-5. **Conversation history must be passed on every API call** -- Claude has no memory between requests
-6. **Mobile voice support is inconsistent** -- desktop-first design; mobile is a nice-to-have, not a requirement
-7. **Keep Claude responses concise** -- enforce max_tokens: 200 for session turns, 350 for feedback
-8. **Competitive claims must be accurate** -- if the AI makes inaccurate claims about AAP or competitors, it trains bad habits; the system prompt should emphasize factual grounding
-9. **Persona consistency matters** -- the AI must stay in character for the entire session; breaking character ruins the simulation value
-10. **Score parsing needs error handling** -- the structured feedback format may occasionally deviate; implement fallback parsing
+1. **Web Speech API browser support** -- `SpeechRecognition` is Chrome/Edge only. iOS has no `SpeechRecognition` on any browser (WebKit limitation). Always show text input as fallback.
+2. **Chrome TTS hangs on macOS** -- `speechSynthesis.speak()` can accept utterances but `onend` never fires. The `pause()/resume()` keepalive every 3s is essential. Without it, sessions freeze at "Prospect is Speaking".
+3. **Lookbehind regex crashes Safari** -- `(?<=...)` throws `SyntaxError` in Safari < 16.4. Use capture group splits instead.
+4. **TTS requires user gesture in Chrome** -- Never call `speechSynthesis.speak()` from `useEffect` after navigation. The "Begin Session" button provides the gesture context.
+5. **Long utterances silently dropped** -- Chrome drops long `SpeechSynthesisUtterance` texts. Always split into sentences.
+6. **Cancel/speak race in Chrome** -- `cancel()` immediately before `speak()` drops the utterance. Only add a 50ms delay if speech was actually playing.
+7. **Voices load asynchronously** -- Wait for `speechSynthesis.onvoiceschanged`. The hook also does a sync `getVoices()` fallback before speaking.
+8. **Never run STT and TTS simultaneously** -- Creates echo feedback. Turn-taking state machine strictly enforces this.
+9. **Claude API calls go server-side** -- Never expose the API key in client code. Routes are in `app/api/`.
+10. **Conversation history passed on every API call** -- Claude has no memory between requests.
+11. **TTS Promises must have timeouts** -- Never let TTS hang the session. Global 15s timeout + 8s per-sentence timeout ensure the session always continues.
+12. **Intro must be in transcript** -- The prospect's intro is added as a `SessionEntry` before TTS plays. If TTS fails, the user can still read the opening.
+13. **Score parsing needs fallbacks** -- The structured feedback format may occasionally deviate. Each parse function has a sensible default.
+14. **Competitive claims must be accurate** -- The AI must make factual claims about AAP and competitors. The system prompt emphasizes this.
+15. **iOS TTS per-call gesture** -- On iOS, each `speechSynthesis.speak()` needs a user gesture. The current architecture (button click triggers session start) satisfies the first call, but mid-session TTS may require additional handling on iOS.
 
 ---
 
 ## AAP Knowledge Reference
 
-This is a condensed reference of key AAP capabilities and competitive positioning. Used to inform scenario context and validate rep responses. Keep this updated as the product evolves.
-
 ### Core AAP Components
 - **Automation Controller** (formerly Ansible Tower) -- RBAC, workflows, scheduling, audit trails, API, credential management
-- **Automation Mesh** -- scalable, resilient execution plane; hop nodes and execution nodes distributed across network zones
-- **Event-Driven Ansible (EDA)** -- event-driven automation for auto-remediation and response
-- **Automation Hub** -- certified content collections, private automation hub for curated internal content
-- **Execution Environments** -- containerized, portable automation runtime (replaces virtualenvs)
-- **Ansible Lightspeed with IBM watsonx Code Assistant** -- AI-powered content creation assistance
-
-### Key Differentiators vs. Upstream
-- Enterprise support with SLAs and CVE response commitments
-- Certified, tested content collections with lifecycle guarantees
-- Automation mesh for scale and security (not available in AWX)
-- Event-Driven Ansible (not in community Ansible or AWX)
-- FIPS 140-2 compliance and hardened container images
-- Predictable lifecycle and upgrade paths
-- Ansible Lightspeed AI integration
-- Access to broader Red Hat ecosystem (OpenShift, RHEL, Satellite, Insights)
+- **Automation Mesh** -- scalable, resilient execution plane; hop nodes and execution nodes across network zones
+- **Event-Driven Ansible (EDA)** -- event-driven automation for auto-remediation
+- **Automation Hub** -- certified content collections, private hub for internal content
+- **Execution Environments** -- containerized, portable automation runtime
+- **Ansible Lightspeed with IBM watsonx Code Assistant** -- AI-powered content creation
 
 ### Competitive Positioning Summary
 | Competitor | Relationship | Key Message |
 |-----------|-------------|-------------|
-| Ansible CLI | Upstream project | AAP adds enterprise governance, scale, and security around the Ansible language |
-| AWX | Upstream of Controller | AWX is one component without support; AAP is a complete platform with mesh, EDA, Hub, and lifecycle |
-| Terraform | Complementary | Terraform = provisioning (Day 0/1); Ansible = configuration and operations (Day 1/2); better together |
-| Puppet/Chef | Alternative | Agentless, lower learning curve (YAML), broader automation scope, stronger community momentum |
-| Cloud-native tools | Alternative | Multi-cloud consistency, no vendor lock-in, hybrid/edge coverage, single language everywhere |
-| ServiceNow | Complementary | AAP as execution engine; deeper infrastructure automation; edge execution; pre-built integration |
-
----
-
-## Definition of Done
-
-- [ ] Scenario selection screen with all 15 scenarios, organized by category
-- [ ] Persona selector with 5 distinct prospect personas, each with visible description
-- [ ] Sparring arena with working voice input and output
-- [ ] 3-round session loop with clear round/phase indicators
-- [ ] Prospect avatar with persona-specific visual treatment and speaking indicator
-- [ ] Clean transcript display (bubbles, left/right aligned by speaker)
-- [ ] Scorecard results screen with 5-dimension radar chart or bar visualization
-- [ ] Strengths and improvement area clearly displayed
-- [ ] "Run Again" (same scenario) and "New Scenario" flows without page reload
-- [ ] Browser compatibility notice for non-Chrome/Edge users
-- [ ] Desktop-optimized responsive layout
-- [ ] Loading/error states for all API calls
-- [ ] Dark mode by default
-- [ ] Deployed to Vercel
+| Ansible CLI | Upstream | AAP adds governance, scale, and security around the Ansible language |
+| AWX | Upstream of Controller | AWX is one component without support; AAP is a complete platform |
+| Terraform | Complementary | Terraform = provisioning (Day 0/1); Ansible = configuration + operations (Day 1/2) |
+| Puppet/Chef | Alternative | Agentless, YAML, broader scope, stronger community momentum |
+| Cloud-native tools | Alternative | Multi-cloud consistency, no vendor lock-in, hybrid/edge coverage |
+| ServiceNow | Complementary | AAP as execution engine; deeper infra automation; edge execution |
 
 ---
 
@@ -624,6 +428,6 @@ This is a condensed reference of key AAP capabilities and competitive positionin
 npm run dev          # Development server
 npm run build        # Production build
 npm run lint         # ESLint check
-npm run type-check   # TypeScript check
+npm run type-check   # TypeScript check (if configured)
 vercel --prod        # Deploy to production
 ```
