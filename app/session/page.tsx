@@ -28,22 +28,20 @@ export default function SessionPage() {
   const router = useRouter();
   const session = useSession();
   const transcriptEndRef = useRef<HTMLDivElement>(null);
-  const initRef = useRef(false);
+  const [started, setStarted] = useState(false);
   const [compatDismissed, setCompatDismissed] = useState(false);
 
   useEffect(() => {
-    if (!session.scenario && !initRef.current) {
+    if (!session.scenario) {
       router.replace('/');
     }
   }, [session.scenario, router]);
 
-  useEffect(() => {
-    if (session.scenario && session.persona && !initRef.current) {
-      initRef.current = true;
-      session.startSession(session.scenario, session.persona);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  function handleBegin() {
+    if (!session.scenario || !session.persona || started) return;
+    setStarted(true);
+    session.startSession(session.scenario, session.persona);
+  }
 
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -51,6 +49,25 @@ export default function SessionPage() {
 
   if (!session.scenario || !session.persona) {
     return null;
+  }
+
+  if (!started) {
+    return (
+      <div className="flex h-dvh flex-col items-center justify-center gap-6 bg-dark px-5">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-white">
+            {session.scenario.title}
+          </h2>
+          <p className="mt-2 text-sm text-white/40">
+            vs. <span className="text-secondary">{session.persona.name}</span>
+            <span className="ml-1 text-white/30">{session.persona.title}</span>
+          </p>
+        </div>
+        <Button large variant="primary" onClick={handleBegin}>
+          Begin Session
+        </Button>
+      </div>
+    );
   }
 
   const prospectState = getProspectState(session.turnState, session.isSpeaking);

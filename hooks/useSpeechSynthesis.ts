@@ -80,6 +80,7 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
           return;
         }
 
+        const wasSpeaking = window.speechSynthesis.speaking;
         window.speechSynthesis.cancel();
 
         const sentences = splitIntoSentences(text);
@@ -127,9 +128,13 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
           window.speechSynthesis.speak(utterance);
         };
 
-        // Delay after cancel() to avoid Chrome race condition where
-        // speak() called immediately after cancel() is silently dropped
-        setTimeout(speakNext, 50);
+        // Only delay if we actually canceled ongoing speech (Chrome race
+        // condition). Otherwise run immediately to preserve user gesture context.
+        if (wasSpeaking) {
+          setTimeout(speakNext, 50);
+        } else {
+          speakNext();
+        }
       });
     },
     [],
