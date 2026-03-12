@@ -4,6 +4,7 @@ export interface Scenario {
   readonly description: string;
   readonly category: ScenarioCategory;
   readonly context: string;
+  readonly tips: readonly string[];
 }
 
 export type ScenarioCategory = 'upstream' | 'competitive' | 'value' | 'technical';

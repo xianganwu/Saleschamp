@@ -58,8 +58,9 @@ sales-champ/
 │       └── PersonaSelector.tsx # Choose prospect persona (3 personas)
 ├── lib/
 │   ├── session-engine.ts       # Client-side API caller with retry logic
-│   ├── scenarios.ts            # Scenario bank with categories
+│   ├── scenarios.ts            # Scenario bank with categories + coaching tips
 │   ├── personas.ts             # 3 prospect persona definitions
+│   ├── recommendations.ts     # Post-session scenario recommendation engine
 │   ├── store.ts                # Zustand session state store
 │   ├── prompts.ts              # Claude system prompts (prospect + coach)
 │   └── sounds.ts               # Web Audio API synthesized sound effects (ding, whoosh)
@@ -85,6 +86,7 @@ HOME SCREEN
   -> "Start Session" button
 
 BEGIN SESSION SCREEN
+  -> 3 coaching tips specific to the selected scenario (tactical advice before sparring)
   -> "Begin Session" button (required for user gesture to enable TTS)
   -> Optional "Test Audio" diagnostic button
 
@@ -102,6 +104,8 @@ RESULTS SCREEN
   -> One targeted improvement with example phrasing
   -> Overall readiness summary
   -> Expandable full conversation transcript
+  -> Recommended next scenario based on weakest scoring dimension (with persona + reason)
+  -> "Practice This" to jump directly to the recommendation
   -> "Run Again" (same scenario) or "New Scenario"
 ```
 
@@ -136,7 +140,7 @@ All pages are fully responsive with mobile-first breakpoints:
 
 ## Scenario Bank
 
-Scenarios are organized by competitive category. Each represents a real objection AAP sales specialists encounter in the field.
+Scenarios are organized by competitive category. Each represents a real objection AAP sales specialists encounter in the field. Every scenario includes 3 coaching tips shown on the Begin Session screen to help the rep prepare.
 
 ### vs. Upstream / Open Source (3 scenarios)
 1. "Ansible CLI is free -- why would we pay for AAP?"
@@ -154,12 +158,11 @@ Scenarios are organized by competitive category. Each represents a real objectio
 9. "We're early in our automation journey -- we're not ready for a platform."
 10. "We can't show ROI on automation to our leadership."
 
-### Technical & Architecture (5 scenarios)
+### Technical & Architecture (4 scenarios)
 11. "We're moving everything to Kubernetes -- shouldn't we use K8s-native tooling?"
 12. "Ansible is too slow for our scale -- we've had performance issues."
 13. "Our security team has concerns about agentless SSH-based automation."
 14. "We just need a job scheduler, not a whole automation platform."
-15. "AI-generated automation is unreliable -- we don't trust Lightspeed for production."
 
 ---
 

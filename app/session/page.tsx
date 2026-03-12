@@ -74,6 +74,28 @@ export default function SessionPage() {
             <span className="ml-1 text-white/30">{session.persona.title}</span>
           </p>
         </div>
+        {/* Coaching tips */}
+        {session.scenario.tips.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="w-full max-w-md rounded-xl border border-white/5 bg-surface/60 px-5 py-4"
+          >
+            <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-accent">
+              Before you start
+            </h3>
+            <ul className="space-y-2">
+              {session.scenario.tips.map((tip, i) => (
+                <li key={i} className="flex gap-2 text-sm leading-relaxed text-white/60">
+                  <span className="mt-0.5 flex-shrink-0 text-accent/60">&bull;</span>
+                  <span>{tip}</span>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+
         <Button large variant="primary" onClick={handleBegin}>
           Begin Session
         </Button>

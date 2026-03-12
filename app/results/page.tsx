@@ -8,6 +8,7 @@ import { callFeedbackAPI } from '@/lib/session-engine';
 import { ProspectAvatar } from '@/components/session/ProspectAvatar';
 import { TranscriptBubble } from '@/components/session/TranscriptBubble';
 import { Button } from '@/components/ui/Button';
+import { getRecommendation } from '@/lib/recommendations';
 import type { FeedbackApiResponse } from '@/types/session';
 
 const SCORE_LABELS = [
@@ -129,6 +130,18 @@ export default function ResultsPage() {
     resetSession();
     router.push('/');
   }, [resetSession, router]);
+
+  const recommendation = feedback && scenario
+    ? getRecommendation(feedback.scores, scenario.id)
+    : null;
+
+  const handlePracticeRecommended = useCallback(() => {
+    if (!recommendation) return;
+    resetSession();
+    useSessionStore.getState().setScenario(recommendation.scenario);
+    useSessionStore.getState().setPersona(recommendation.persona);
+    router.push('/session');
+  }, [recommendation, resetSession, router]);
 
   if (!scenario) return null;
 
@@ -277,11 +290,42 @@ export default function ResultsPage() {
           </AnimatePresence>
         </motion.div>
 
+        {/* Recommended next scenario */}
+        {recommendation && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.4 }}
+            className="w-full rounded-xl border border-secondary/20 bg-secondary/5 p-5"
+          >
+            <h3 className="mb-1 text-xs font-semibold uppercase tracking-wider text-secondary">
+              Recommended Next
+            </h3>
+            <p className="mb-1 text-sm font-medium text-white/80">
+              {recommendation.scenario.title}
+            </p>
+            <p className="mb-3 text-xs text-white/40">
+              vs. <span className="text-secondary">{recommendation.persona.name}</span>
+              <span className="ml-1 text-white/30">{recommendation.persona.title}</span>
+            </p>
+            <p className="mb-4 text-xs leading-relaxed text-white/50">
+              <span className="text-accent">Strengthen {recommendation.weakDimension}:</span>{' '}
+              {recommendation.reason}
+            </p>
+            <button
+              onClick={handlePracticeRecommended}
+              className="rounded-lg bg-secondary/15 px-4 py-2 text-sm font-semibold text-secondary transition-colors hover:bg-secondary/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+            >
+              Practice This
+            </button>
+          </motion.div>
+        )}
+
         {/* Action buttons */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1.4 }}
+          transition={{ delay: 1.6 }}
           className="flex w-full flex-col gap-3 sm:flex-row sm:justify-center"
         >
           <Button large variant="primary" onClick={handleRunAgain} className="flex-1 sm:flex-none">
