@@ -36,12 +36,21 @@ function splitIntoSentences(text: string): string[] {
   return sentences.length > 0 ? sentences : [trimmed];
 }
 
+export interface AudioTestResult {
+  supported: boolean;
+  voiceCount: number;
+  voiceNames: string[];
+  testPassed: boolean;
+  error?: string;
+}
+
 export interface UseSpeechSynthesisReturn {
   isSupported: boolean;
   isSpeaking: boolean;
   voicesLoaded: boolean;
   speak: (text: string, voiceConfig?: VoiceConfig) => Promise<void>;
   cancel: () => void;
+  testAudio: () => Promise<AudioTestResult>;
 }
 
 export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
@@ -80,9 +89,10 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
 
   const speak = useCallback(
     (text: string, voiceConfig: VoiceConfig = DEFAULT_VOICE_CONFIG): Promise<void> => {
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         if (typeof window === 'undefined' || !window.speechSynthesis) {
-          reject(new Error('SpeechSynthesis not supported'));
+          console.warn('[TTS] speechSynthesis not supported');
+          resolve();
           return;
         }
 
@@ -103,11 +113,27 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
 
         const voice = findVoice(voicesRef.current, voiceConfig.preferredVoices);
         let currentIndex = 0;
+        let settled = false;
+
+        const finish = () => {
+          if (settled) return;
+          settled = true;
+          setIsSpeaking(false);
+          window.speechSynthesis.cancel();
+          resolve();
+        };
+
+        // Overall timeout: never let TTS hang the session
+        const totalTimeout = setTimeout(() => {
+          console.warn('[TTS] Global timeout — speech hung, continuing session');
+          finish();
+        }, 15_000);
 
         const speakNext = () => {
+          if (settled) return;
           if (currentIndex >= sentences.length) {
-            setIsSpeaking(false);
-            resolve();
+            clearTimeout(totalTimeout);
+            finish();
             return;
           }
 
@@ -123,17 +149,29 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
             utterance.onstart = () => setIsSpeaking(true);
           }
 
+          // Per-sentence timeout: if a sentence hangs, skip it
+          const sentenceTimeout = setTimeout(() => {
+            console.warn(`[TTS] Sentence timeout (index ${currentIndex}), skipping`);
+            currentIndex++;
+            speakNext();
+          }, 8_000);
+
           utterance.onend = () => {
+            clearTimeout(sentenceTimeout);
             currentIndex++;
             speakNext();
           };
 
           utterance.onerror = (event) => {
-            setIsSpeaking(false);
+            clearTimeout(sentenceTimeout);
+            console.warn(`[TTS] Utterance error: ${event.error}`);
             if (event.error === 'interrupted' || event.error === 'canceled') {
-              resolve();
+              clearTimeout(totalTimeout);
+              finish();
             } else {
-              reject(new Error(`Speech synthesis error: ${event.error}`));
+              // Skip this sentence and try the next
+              currentIndex++;
+              speakNext();
             }
           };
 
@@ -152,6 +190,48 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
     [],
   );
 
+  const testAudio = useCallback(async (): Promise<AudioTestResult> => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) {
+      return { supported: false, voiceCount: 0, voiceNames: [], testPassed: false, error: 'speechSynthesis not available' };
+    }
+
+    const voices = window.speechSynthesis.getVoices();
+    const voiceNames = voices.map((v) => v.name);
+    const result: AudioTestResult = {
+      supported: true,
+      voiceCount: voices.length,
+      voiceNames: voiceNames.slice(0, 10),
+      testPassed: false,
+    };
+
+    if (voices.length === 0) {
+      result.error = 'No voices available';
+      return result;
+    }
+
+    return new Promise((resolve) => {
+      const timeout = setTimeout(() => {
+        window.speechSynthesis.cancel();
+        result.error = 'Speech timed out — no onend fired';
+        resolve(result);
+      }, 5_000);
+
+      const utterance = new SpeechSynthesisUtterance('Test');
+      utterance.volume = 1;
+      utterance.onend = () => {
+        clearTimeout(timeout);
+        result.testPassed = true;
+        resolve(result);
+      };
+      utterance.onerror = (event) => {
+        clearTimeout(timeout);
+        result.error = `Speech error: ${event.error}`;
+        resolve(result);
+      };
+      window.speechSynthesis.speak(utterance);
+    });
+  }, []);
+
   useEffect(() => {
     return () => {
       if (typeof window !== 'undefined' && window.speechSynthesis) {
@@ -160,5 +240,5 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
     };
   }, []);
 
-  return { isSupported, isSpeaking, voicesLoaded, speak, cancel };
+  return { isSupported, isSpeaking, voicesLoaded, speak, cancel, testAudio };
 }

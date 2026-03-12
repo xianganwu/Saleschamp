@@ -9,6 +9,7 @@ import { VoiceButton } from '@/components/session/VoiceButton';
 import { TranscriptBubble } from '@/components/session/TranscriptBubble';
 import { RoundIndicator } from '@/components/session/RoundIndicator';
 import { Button } from '@/components/ui/Button';
+import type { AudioTestResult } from '@/hooks/useSpeechSynthesis';
 
 function getProspectState(turnState: string, isSpeaking: boolean) {
   if (turnState === 'prospect' && isSpeaking) return 'speaking' as const;
@@ -30,6 +31,8 @@ export default function SessionPage() {
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const [started, setStarted] = useState(false);
   const [compatDismissed, setCompatDismissed] = useState(false);
+  const [audioTest, setAudioTest] = useState<AudioTestResult | null>(null);
+  const [testing, setTesting] = useState(false);
 
   useEffect(() => {
     if (!session.scenario) {
@@ -52,6 +55,14 @@ export default function SessionPage() {
   }
 
   if (!started) {
+    const handleTestAudio = async () => {
+      setTesting(true);
+      setAudioTest(null);
+      const result = await session.testAudio();
+      setAudioTest(result);
+      setTesting(false);
+    };
+
     return (
       <div className="flex h-dvh flex-col items-center justify-center gap-6 bg-dark px-5">
         <div className="text-center">
@@ -66,6 +77,29 @@ export default function SessionPage() {
         <Button large variant="primary" onClick={handleBegin}>
           Begin Session
         </Button>
+
+        {/* Audio diagnostic */}
+        <div className="flex flex-col items-center gap-2">
+          <button
+            onClick={handleTestAudio}
+            disabled={testing}
+            className="text-xs text-white/30 underline hover:text-white/50 disabled:opacity-50"
+          >
+            {testing ? 'Testing...' : 'Test Audio'}
+          </button>
+          {audioTest && (
+            <div className="max-w-sm rounded-lg border border-white/10 bg-surface/80 px-4 py-3 text-xs text-white/60">
+              <p>Supported: {audioTest.supported ? 'Yes' : 'No'}</p>
+              <p>Voices: {audioTest.voiceCount} found</p>
+              {audioTest.voiceNames.length > 0 && (
+                <p className="truncate">Names: {audioTest.voiceNames.join(', ')}</p>
+              )}
+              <p className={audioTest.testPassed ? 'text-success' : 'text-danger'}>
+                Test: {audioTest.testPassed ? 'PASSED — you should have heard "Test"' : `FAILED — ${audioTest.error}`}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     );
   }

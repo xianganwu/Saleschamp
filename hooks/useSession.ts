@@ -49,6 +49,7 @@ export interface UseSessionReturn {
   finishRepTurn: () => void;
   submitTextArgument: (text: string) => void;
   resetSession: () => void;
+  testAudio: () => Promise<import('@/hooks/useSpeechSynthesis').AudioTestResult>;
 }
 
 export function useSession(): UseSessionReturn {
@@ -225,5 +226,6 @@ export function useSession(): UseSessionReturn {
     finishRepTurn,
     submitTextArgument,
     resetSession,
+    testAudio: synthesis.testAudio,
   };
 }
