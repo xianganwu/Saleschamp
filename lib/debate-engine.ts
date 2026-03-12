@@ -1,9 +1,8 @@
 import type {
+  DebateApiResponse,
+  DebateEntry,
   FeedbackApiResponse,
-  PersonaId,
-  SessionApiResponse,
-  SessionEntry,
-} from '@/types/session';
+} from '@/types/debate';
 
 const MAX_RETRIES = 2;
 const BASE_DELAY_MS = 500;
@@ -47,34 +46,26 @@ async function fetchWithRetry(
   throw lastError ?? new Error('Request failed after retries');
 }
 
-export async function callSessionAPI(
-  messages: readonly SessionEntry[],
-  scenario: string,
-  scenarioContext: string,
-  personaId: PersonaId,
+export async function callDebateAPI(
+  messages: readonly DebateEntry[],
+  topic: string,
+  sparkySide: string,
   round: number,
-): Promise<SessionApiResponse> {
-  const response = await fetchWithRetry('/api/session', {
+): Promise<DebateApiResponse> {
+  const response = await fetchWithRetry('/api/debate', {
     messages,
-    scenario,
-    scenarioContext,
-    personaId,
+    topic,
+    sparkySide,
     round,
   });
 
-  return response.json() as Promise<SessionApiResponse>;
+  return response.json() as Promise<DebateApiResponse>;
 }
 
 export async function callFeedbackAPI(
-  transcript: readonly SessionEntry[],
-  scenario: string,
-  personaId: PersonaId,
+  transcript: readonly DebateEntry[],
 ): Promise<FeedbackApiResponse> {
-  const response = await fetchWithRetry('/api/feedback', {
-    transcript,
-    scenario,
-    personaId,
-  });
+  const response = await fetchWithRetry('/api/feedback', { transcript });
 
   return response.json() as Promise<FeedbackApiResponse>;
 }

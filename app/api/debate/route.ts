@@ -1,11 +1,10 @@
 import Anthropic from '@anthropic-ai/sdk';
-import type { SessionApiRequest, SessionApiResponse } from '@/types/session';
-import { PROSPECT_SYSTEM_PROMPT, buildConversationHistory } from '@/lib/prompts';
-import { getPersonaById } from '@/lib/personas';
+import type { DebateApiRequest, DebateApiResponse } from '@/types/debate';
+import { SPARKY_SYSTEM_PROMPT, buildConversationHistory } from '@/lib/prompts';
 
 export const maxDuration = 30;
 
-const SESSION_COMPLETE_TAG = '[SESSION_COMPLETE]';
+const DEBATE_COMPLETE_TAG = '[DEBATE_COMPLETE]';
 
 const anthropic = new Anthropic();
 
@@ -18,20 +17,13 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  const body = (await request.json()) as SessionApiRequest;
-  const { messages, scenario, scenarioContext, personaId, round } = body;
+  const body = (await request.json()) as DebateApiRequest;
 
-  if (!scenario || !personaId || !round || !messages) {
-    return Response.json(
-      { error: 'Missing required fields: messages, scenario, personaId, round' },
-      { status: 400 },
-    );
-  }
+  const { messages, topic, sparkySide, round } = body;
 
-  const persona = getPersonaById(personaId);
-  if (!persona) {
+  if (!topic || !sparkySide || !round || !messages) {
     return Response.json(
-      { error: `Unknown persona: ${personaId}` },
+      { error: 'Missing required fields: messages, topic, sparkySide, round' },
       { status: 400 },
     );
   }
@@ -40,9 +32,9 @@ export async function POST(request: Request): Promise<Response> {
     const conversationHistory = buildConversationHistory(messages);
 
     const result = await anthropic.messages.create({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 200,
-      system: PROSPECT_SYSTEM_PROMPT(scenario, scenarioContext, persona, round),
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 250,
+      system: SPARKY_SYSTEM_PROMPT(topic, sparkySide, round),
       messages: conversationHistory,
     });
 
@@ -55,15 +47,15 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     const rawText = textBlock.text;
-    const isComplete = rawText.includes(SESSION_COMPLETE_TAG);
-    const response = rawText.replace(SESSION_COMPLETE_TAG, '').trim();
+    const isComplete = rawText.includes(DEBATE_COMPLETE_TAG);
+    const response = rawText.replace(DEBATE_COMPLETE_TAG, '').trim();
 
-    const responseBody: SessionApiResponse = { response, isComplete };
+    const responseBody: DebateApiResponse = { response, isComplete };
     return Response.json(responseBody);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : 'Unknown error calling Claude API';
-    console.error('Session API error:', message);
+    console.error('Debate API error:', message);
     return Response.json({ error: message }, { status: 500 });
   }
 }

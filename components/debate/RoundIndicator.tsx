@@ -7,19 +7,12 @@ interface RoundIndicatorProps {
   maxRounds: number;
 }
 
-const ROUND_LABELS = ['Opening', 'Deep Dive', 'Close'];
-
 export function RoundIndicator({ currentRound, maxRounds }: RoundIndicatorProps) {
   return (
     <div className="flex items-center gap-3">
-      <div className="text-right">
-        <span className="text-sm font-semibold text-white/70">
-          Round {currentRound}/{maxRounds}
-        </span>
-        <span className="ml-2 text-xs text-white/40">
-          {ROUND_LABELS[currentRound - 1] ?? ''}
-        </span>
-      </div>
+      <span className="font-display text-sm font-bold text-white/70">
+        Round {currentRound} of {maxRounds}
+      </span>
       <div className="flex gap-1.5">
         {Array.from({ length: maxRounds }, (_, i) => {
           const roundNum = i + 1;
@@ -30,18 +23,18 @@ export function RoundIndicator({ currentRound, maxRounds }: RoundIndicatorProps)
             <motion.div
               key={i}
               className={`
-                h-2.5 w-2.5 rounded-full border-2
+                h-3 w-3 rounded-full border-2
                 ${
                   isComplete
                     ? 'border-success bg-success'
                     : isCurrent
                       ? 'border-accent bg-accent'
-                      : 'border-white/15 bg-transparent'
+                      : 'border-white/20 bg-transparent'
                 }
               `}
               animate={
                 isCurrent
-                  ? { scale: [1, 1.25, 1] }
+                  ? { scale: [1, 1.3, 1], boxShadow: ['0 0 0 0 rgba(255,230,109,0)', '0 0 0 6px rgba(255,230,109,0.3)', '0 0 0 0 rgba(255,230,109,0)'] }
                   : {}
               }
               transition={isCurrent ? { duration: 1.5, repeat: Infinity } : {}}
