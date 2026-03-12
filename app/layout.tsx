@@ -1,21 +1,21 @@
 import type { Metadata } from 'next';
-import { Nunito, Fredoka } from 'next/font/google';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 
-const nunito = Nunito({
-  variable: '--font-nunito',
+const inter = Inter({
+  variable: '--font-inter',
   subsets: ['latin'],
 });
 
-const fredoka = Fredoka({
-  variable: '--font-fredoka',
+const jetbrainsMono = JetBrains_Mono({
+  variable: '--font-jetbrains-mono',
   subsets: ['latin'],
 });
 
 export const metadata: Metadata = {
-  title: 'DebateChamp 🎤',
+  title: 'SalesChamp',
   description:
-    'AI-powered debate practice for kids. Argue against Sparky the debate robot and sharpen your skills!',
+    'AI-powered objection handling practice for Red Hat AAP Sales Specialists.',
 };
 
 export default function RootLayout({
@@ -26,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${nunito.variable} ${fredoka.variable} font-sans antialiased bg-dark text-white`}
+        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-dark text-white`}
       >
         {children}
       </body>

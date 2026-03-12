@@ -15,7 +15,7 @@ const variantStyles: Record<ButtonVariant, string> = {
   secondary:
     'bg-secondary text-white shadow-lg shadow-secondary/30 hover:shadow-secondary/50',
   danger:
-    'bg-red-500 text-white shadow-lg shadow-red-500/30 hover:shadow-red-500/50',
+    'bg-danger text-white shadow-lg shadow-danger/30 hover:shadow-danger/50',
 };
 
 export function Button({

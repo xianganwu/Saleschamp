@@ -1,29 +1,23 @@
 import { create } from 'zustand';
-import type { DebateEntry, DebateSide, DebateState, Topic, TurnState } from '@/types/debate';
+import type { Persona, Scenario, SessionEntry, SessionState, TurnState } from '@/types/session';
 
 const INITIAL_STATE = {
-  topic: null,
-  studentSide: null,
-  sparkySide: null,
+  scenario: null,
+  persona: null,
   currentRound: 1,
   maxRounds: 3 as const,
   turnState: 'idle' as TurnState,
-  transcript: [] as readonly DebateEntry[],
-  studentScore: 0,
+  transcript: [] as readonly SessionEntry[],
 };
 
-export const useDebateStore = create<DebateState>()((set) => ({
+export const useSessionStore = create<SessionState>()((set) => ({
   ...INITIAL_STATE,
 
-  setTopic: (topic: Topic) => set({ topic }),
+  setScenario: (scenario: Scenario) => set({ scenario }),
 
-  setSides: (studentSide: DebateSide) =>
-    set({
-      studentSide,
-      sparkySide: studentSide === 'FOR' ? 'AGAINST' : 'FOR',
-    }),
+  setPersona: (persona: Persona) => set({ persona }),
 
-  addTranscriptEntry: (entry: DebateEntry) =>
+  addTranscriptEntry: (entry: SessionEntry) =>
     set((state) => ({
       transcript: [...state.transcript, entry],
     })),
@@ -35,5 +29,5 @@ export const useDebateStore = create<DebateState>()((set) => ({
 
   setTurnState: (turnState: TurnState) => set({ turnState }),
 
-  resetDebate: () => set(INITIAL_STATE),
+  resetSession: () => set(INITIAL_STATE),
 }));

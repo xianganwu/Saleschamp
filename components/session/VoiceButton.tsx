@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { TurnState } from '@/types/debate';
+import type { TurnState } from '@/types/session';
 
 interface VoiceButtonProps {
   turnState: TurnState;
@@ -19,24 +19,15 @@ type ButtonMode = 'waiting' | 'ready' | 'recording' | 'processing';
 function getMode(turnState: TurnState, isListening: boolean): ButtonMode {
   if (turnState === 'processing') return 'processing';
   if (isListening) return 'recording';
-  if (turnState === 'student') return 'ready';
+  if (turnState === 'rep') return 'ready';
   return 'waiting';
 }
 
-// SVG icons as components to avoid string literals
 function MicIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
       <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z" />
       <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z" />
-    </svg>
-  );
-}
-
-function LockIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
     </svg>
   );
 }
@@ -49,7 +40,14 @@ function StopIcon({ className }: { className?: string }) {
   );
 }
 
-// Pulsing ripple rings behind the button
+function SendIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+    </svg>
+  );
+}
+
 function RippleRings({ color }: { color: string }) {
   return (
     <>
@@ -57,8 +55,8 @@ function RippleRings({ color }: { color: string }) {
         <motion.div
           key={delay}
           className={`absolute inset-0 rounded-full border-2 ${color}`}
-          initial={{ scale: 1, opacity: 0.6 }}
-          animate={{ scale: 2, opacity: 0 }}
+          initial={{ scale: 1, opacity: 0.5 }}
+          animate={{ scale: 1.8, opacity: 0 }}
           transition={{ duration: 1.5, repeat: Infinity, delay }}
         />
       ))}
@@ -66,7 +64,6 @@ function RippleRings({ color }: { color: string }) {
   );
 }
 
-// Spinner ring
 function Spinner() {
   return (
     <motion.div
@@ -77,42 +74,29 @@ function Spinner() {
   );
 }
 
-const modeConfig: Record<
-  ButtonMode,
-  { bg: string; label: string; sublabel: string }
-> = {
+const modeConfig: Record<ButtonMode, { bg: string; label: string; sublabel: string }> = {
   waiting: {
-    bg: 'bg-white/10',
-    label: 'Sparky is talking...',
+    bg: 'bg-white/5',
+    label: 'Prospect is speaking...',
     sublabel: '',
   },
   ready: {
     bg: 'bg-primary',
-    label: 'Tap to speak',
-    sublabel: 'Your turn!',
+    label: 'Tap to respond',
+    sublabel: 'Your turn',
   },
   recording: {
-    bg: 'bg-red-500',
+    bg: 'bg-danger',
     label: 'Listening...',
     sublabel: 'Tap to finish',
   },
   processing: {
-    bg: 'bg-surface',
-    label: 'Thinking...',
+    bg: 'bg-surface-light',
+    label: 'Processing...',
     sublabel: '',
   },
 };
 
-// Send icon for text input mode
-function SendIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
-    </svg>
-  );
-}
-
-// Text input fallback when voice is not supported
 function TextInput({ onSubmit, disabled }: { onSubmit: (text: string) => void; disabled: boolean }) {
   const [text, setText] = useState('');
 
@@ -124,23 +108,23 @@ function TextInput({ onSubmit, disabled }: { onSubmit: (text: string) => void; d
   }
 
   return (
-    <div className="flex w-full max-w-sm items-center gap-2">
+    <div className="flex w-full max-w-lg items-center gap-2">
       <input
         type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
         disabled={disabled}
-        placeholder="Type your argument..."
-        className="flex-1 rounded-xl border border-white/15 bg-surface px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-primary disabled:opacity-50"
-        aria-label="Type your argument"
+        placeholder="Type your response..."
+        className="flex-1 rounded-lg border border-white/10 bg-surface px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-colors focus:border-primary disabled:opacity-50"
+        aria-label="Type your response"
       />
       <motion.button
         onClick={handleSubmit}
         disabled={disabled || !text.trim()}
-        whileTap={{ scale: 0.92 }}
-        className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-primary text-white transition-opacity disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-        aria-label="Send argument"
+        whileTap={{ scale: 0.95 }}
+        className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-primary text-white transition-opacity disabled:opacity-30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
+        aria-label="Send response"
       >
         <SendIcon className="h-5 w-5" />
       </motion.button>
@@ -161,23 +145,22 @@ export function VoiceButton({
   const config = modeConfig[mode];
   const disabled = mode === 'waiting' || mode === 'processing';
 
-  // Text input fallback for browsers without voice support
   if (!voiceSupported && onSubmitText) {
-    const textDisabled = turnState !== 'student';
+    const textDisabled = turnState !== 'rep';
 
     return (
       <div className="flex flex-col items-center gap-3">
         {turnState === 'processing' && (
           <div className="flex items-center gap-2 text-sm text-white/50">
             <div className="h-4 w-4 rounded-full border-2 border-white/20 border-t-white animate-spin" />
-            Sparky is thinking...
+            Processing...
           </div>
         )}
-        {turnState === 'sparky' && (
-          <p className="text-sm font-bold text-white/50">Sparky is talking...</p>
+        {turnState === 'prospect' && (
+          <p className="text-sm text-white/50">Prospect is speaking...</p>
         )}
-        {turnState === 'student' && (
-          <p className="text-sm font-bold text-accent">Your turn! Type your argument:</p>
+        {turnState === 'rep' && (
+          <p className="text-sm font-medium text-accent">Your turn. Respond to the objection:</p>
         )}
         <TextInput onSubmit={onSubmitText} disabled={textDisabled} />
       </div>
@@ -191,33 +174,27 @@ export function VoiceButton({
 
   return (
     <div className="flex flex-col items-center gap-3">
-      {/* Button container */}
-      <div className="relative flex items-center justify-center" style={{ width: 120, height: 120 }}>
-        {/* Ripple rings */}
-        {mode === 'recording' && <RippleRings color="border-red-400/50" />}
-        {mode === 'ready' && <RippleRings color="border-primary/30" />}
-
-        {/* Spinner for processing */}
+      <div className="relative flex items-center justify-center" style={{ width: 100, height: 100 }}>
+        {mode === 'recording' && <RippleRings color="border-danger/40" />}
+        {mode === 'ready' && <RippleRings color="border-primary/25" />}
         {mode === 'processing' && <Spinner />}
 
-        {/* Main button */}
         <motion.button
           onClick={handleClick}
           disabled={disabled}
-          whileTap={disabled ? undefined : { scale: 0.92 }}
-          whileHover={disabled ? undefined : { scale: 1.05 }}
-          transition={{ type: 'spring' as const, stiffness: 400, damping: 20 }}
+          whileTap={disabled ? undefined : { scale: 0.93 }}
+          whileHover={disabled ? undefined : { scale: 1.04 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 22 }}
           className={`
             relative z-10 flex items-center justify-center
-            rounded-full
-            transition-colors duration-300
+            rounded-full transition-colors duration-300
             disabled:cursor-not-allowed
-            focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent
+            focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-secondary
             ${config.bg}
-            ${mode === 'ready' ? 'shadow-xl shadow-primary/40' : ''}
-            ${mode === 'recording' ? 'shadow-xl shadow-red-500/40' : ''}
+            ${mode === 'ready' ? 'shadow-lg shadow-primary/30' : ''}
+            ${mode === 'recording' ? 'shadow-lg shadow-danger/30' : ''}
           `}
-          style={{ width: 96, height: 96 }}
+          style={{ width: 80, height: 80 }}
           aria-label={config.label}
         >
           <AnimatePresence mode="wait">
@@ -226,43 +203,43 @@ export function VoiceButton({
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.5, opacity: 0 }}
-              transition={{ type: 'spring' as const, stiffness: 500, damping: 25 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 25 }}
             >
-              {mode === 'waiting' && <LockIcon className="w-9 h-9 text-white/40" />}
-              {mode === 'ready' && <MicIcon className="w-10 h-10 text-white" />}
-              {mode === 'recording' && <StopIcon className="w-9 h-9 text-white" />}
+              {mode === 'waiting' && (
+                <div className="h-6 w-6 rounded-full border-2 border-white/20" />
+              )}
+              {mode === 'ready' && <MicIcon className="w-8 h-8 text-white" />}
+              {mode === 'recording' && <StopIcon className="w-7 h-7 text-white" />}
               {mode === 'processing' && (
-                <div className="w-8 h-8 rounded-full border-3 border-white/20 border-t-white animate-spin" />
+                <div className="w-6 h-6 rounded-full border-3 border-white/20 border-t-white animate-spin" />
               )}
             </motion.div>
           </AnimatePresence>
         </motion.button>
       </div>
 
-      {/* Labels */}
       <AnimatePresence mode="wait">
         <motion.div
           key={mode}
-          initial={{ opacity: 0, y: 5 }}
+          initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -5 }}
+          exit={{ opacity: 0, y: -4 }}
           className="flex flex-col items-center gap-0.5 text-center"
         >
-          <span className="text-sm font-bold text-white/80">{config.label}</span>
+          <span className="text-sm font-medium text-white/70">{config.label}</span>
           {config.sublabel && (
-            <span className="text-xs text-white/50">{config.sublabel}</span>
+            <span className="text-xs text-white/40">{config.sublabel}</span>
           )}
         </motion.div>
       </AnimatePresence>
 
-      {/* Live transcript preview while recording */}
       <AnimatePresence>
         {mode === 'recording' && interimTranscript && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="max-w-xs rounded-xl bg-white/5 px-4 py-2 text-center text-sm text-white/60 italic"
+            className="max-w-sm rounded-lg bg-white/5 px-4 py-2 text-center text-sm text-white/50 italic"
           >
             &ldquo;{interimTranscript}&rdquo;
           </motion.div>
