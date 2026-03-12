@@ -2,11 +2,21 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { DebateApiRequest, DebateApiResponse } from '@/types/debate';
 import { SPARKY_SYSTEM_PROMPT, buildConversationHistory } from '@/lib/prompts';
 
+export const maxDuration = 30;
+
 const DEBATE_COMPLETE_TAG = '[DEBATE_COMPLETE]';
 
 const anthropic = new Anthropic();
 
 export async function POST(request: Request): Promise<Response> {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error('ANTHROPIC_API_KEY is not set');
+    return Response.json(
+      { error: 'Server configuration error: missing API key' },
+      { status: 500 },
+    );
+  }
+
   const body = (await request.json()) as DebateApiRequest;
 
   const { messages, topic, sparkySide, round } = body;

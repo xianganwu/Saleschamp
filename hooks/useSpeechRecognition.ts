@@ -29,7 +29,7 @@ function getSpeechRecognition(): SpeechRecognitionConstructor | null {
     | undefined ?? null;
 }
 
-const SILENCE_TIMEOUT_MS = 2000;
+const SILENCE_TIMEOUT_MS = 3500;
 
 export interface UseSpeechRecognitionReturn {
   isSupported: boolean;
@@ -79,7 +79,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
     setTranscript('');
 
     const recognition = new Ctor();
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = 'en-US';
     recognitionRef.current = recognition;

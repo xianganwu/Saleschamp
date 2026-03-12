@@ -2,9 +2,19 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { FeedbackApiRequest, FeedbackApiResponse } from '@/types/debate';
 import { FEEDBACK_PROMPT } from '@/lib/prompts';
 
+export const maxDuration = 30;
+
 const anthropic = new Anthropic();
 
 export async function POST(request: Request): Promise<Response> {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error('ANTHROPIC_API_KEY is not set');
+    return Response.json(
+      { error: 'Server configuration error: missing API key' },
+      { status: 500 },
+    );
+  }
+
   const body = (await request.json()) as FeedbackApiRequest;
 
   const { transcript } = body;

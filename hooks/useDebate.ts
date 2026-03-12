@@ -9,7 +9,10 @@ import { playSound } from '@/lib/sounds';
 import type { DebateEntry, DebateSide, Topic } from '@/types/debate';
 
 function toKidFriendlyError(err: unknown): string {
-  const raw = err instanceof Error ? err.message : '';
+  const raw = err instanceof Error ? err.message : String(err);
+  console.error('Debate error:', raw);
+  if (raw.includes('API key') || raw.includes('configuration'))
+    return "Sparky can't connect right now — ask a grown-up to check the setup!";
   if (raw.includes('fetch') || raw.includes('network') || raw.includes('Failed'))
     return "Uh oh, looks like the internet hiccuped! Try again in a sec.";
   if (raw.includes('timeout') || raw.includes('Timeout'))
