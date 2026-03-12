@@ -22,6 +22,14 @@ function findVoice(
   return voices[0];
 }
 
+function splitIntoSentences(text: string): string[] {
+  const trimmed = text.trim();
+  if (!trimmed) return [];
+  // Split after sentence-ending punctuation followed by whitespace
+  const sentences = trimmed.split(/(?<=[.!?])\s+/);
+  return sentences.filter((s) => s.length > 0);
+}
+
 export interface UseSpeechSynthesisReturn {
   isSupported: boolean;
   isSpeaking: boolean;
@@ -74,32 +82,54 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
 
         window.speechSynthesis.cancel();
 
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.pitch = voiceConfig.pitch;
-        utterance.rate = voiceConfig.rate;
-
-        const voice = findVoice(voicesRef.current, voiceConfig.preferredVoices);
-        if (voice) {
-          utterance.voice = voice;
+        const sentences = splitIntoSentences(text);
+        if (sentences.length === 0) {
+          resolve();
+          return;
         }
 
-        utterance.onstart = () => setIsSpeaking(true);
+        const voice = findVoice(voicesRef.current, voiceConfig.preferredVoices);
+        let currentIndex = 0;
 
-        utterance.onend = () => {
-          setIsSpeaking(false);
-          resolve();
-        };
-
-        utterance.onerror = (event) => {
-          setIsSpeaking(false);
-          if (event.error === 'interrupted' || event.error === 'canceled') {
+        const speakNext = () => {
+          if (currentIndex >= sentences.length) {
+            setIsSpeaking(false);
             resolve();
-          } else {
-            reject(new Error(`Speech synthesis error: ${event.error}`));
+            return;
           }
+
+          const utterance = new SpeechSynthesisUtterance(sentences[currentIndex]);
+          utterance.pitch = voiceConfig.pitch;
+          utterance.rate = voiceConfig.rate;
+
+          if (voice) {
+            utterance.voice = voice;
+          }
+
+          if (currentIndex === 0) {
+            utterance.onstart = () => setIsSpeaking(true);
+          }
+
+          utterance.onend = () => {
+            currentIndex++;
+            speakNext();
+          };
+
+          utterance.onerror = (event) => {
+            setIsSpeaking(false);
+            if (event.error === 'interrupted' || event.error === 'canceled') {
+              resolve();
+            } else {
+              reject(new Error(`Speech synthesis error: ${event.error}`));
+            }
+          };
+
+          window.speechSynthesis.speak(utterance);
         };
 
-        window.speechSynthesis.speak(utterance);
+        // Delay after cancel() to avoid Chrome race condition where
+        // speak() called immediately after cancel() is silently dropped
+        setTimeout(speakNext, 50);
       });
     },
     [],
