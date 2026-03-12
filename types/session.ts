@@ -22,8 +22,6 @@ export interface Persona {
 export type PersonaId =
   | 'morgan_chen'
   | 'jamie_torres'
-  | 'casey_williams'
-  | 'riley_park'
   | 'sam_okafor';
 
 export interface VoiceConfig {

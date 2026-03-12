@@ -62,26 +62,6 @@ const JAMIE_TORRES: PersonaDef = {
   convincedBy: 'Honest technical differentiation, architecture specifics',
 };
 
-const CASEY_WILLIAMS: PersonaDef = {
-  name: 'Casey Williams',
-  title: 'IT Director, Operations',
-  id: 'casey_williams',
-  role: 'Runs day-to-day IT ops, manages a team of 15',
-  style: 'Risk-averse, pragmatic, values stability over innovation',
-  hotButtons: 'Disruption to current workflows, migration effort, team retraining',
-  convincedBy: 'Smooth migration paths, coexistence strategies, customer stories',
-};
-
-const RILEY_PARK: PersonaDef = {
-  name: 'Riley Park',
-  title: 'Cloud Architect',
-  id: 'riley_park',
-  role: 'Designs cloud strategy, reports to CTO',
-  style: 'Forward-looking, opinionated, cloud-native mindset',
-  hotButtons: 'Multi-cloud consistency, IaC best practices, modern toolchain fit',
-  convincedBy: 'Hybrid/multi-cloud positioning, automation mesh architecture',
-};
-
 const SAM_OKAFOR: PersonaDef = {
   name: 'Sam Okafor',
   title: 'CISO',
@@ -175,45 +155,6 @@ function buildMockSessions(): SimSession[] {
     },
 
     // ═══════════════════════════════════════════════════════════════════════
-    // WEAK REP (Alex) — Session 3
-    // ═══════════════════════════════════════════════════════════════════════
-    {
-      repName: 'Alex (Weak)',
-      repLevel: 'WEAK',
-      scenarioTitle: "The subscription cost is too high -- we can't justify the budget.",
-      personaName: CASEY_WILLIAMS.name,
-      personaTitle: CASEY_WILLIAMS.title,
-      rounds: [
-        {
-          repResponse:
-            'I understand budget is a concern, but when you look at the value AAP provides, it really pays for itself. Our customers see significant ROI from automation. The platform reduces manual effort and eliminates errors, which saves money in the long run.',
-          prospectResponse:
-            'Everyone says their product "pays for itself." My budget was cut 15% this year. I need to go to my VP with a specific justification for $120K in annual spend. "Significant ROI" isn\'t a number I can put in a spreadsheet. What does "pays for itself" actually look like in dollars?',
-        },
-        {
-          repResponse:
-            'Right, so one way to think about it is the cost of manual processes versus automation. How much time does your team spend on manual tasks? If you can automate those, you free up your engineers to work on higher-value projects. That\'s the real ROI.',
-          prospectResponse:
-            'That\'s a fair framework, but I don\'t actually know how much time my team spends on manual tasks -- we haven\'t tracked that. And "higher-value projects" is vague. Can you help me quantify this? Do you have a tool or a methodology for calculating the actual savings? Other vendors have given me ROI calculators.',
-        },
-        {
-          repResponse:
-            'Yeah, we have some resources for that. I can send you some case studies and a TCO comparison template. We also have a customer who saved a lot on their automation -- I\'d have to look up the specifics. Should I follow up with those materials?',
-          prospectResponse:
-            'I\'d appreciate the materials, but honestly you should have come prepared with those numbers. Every other vendor walks in with a business case framework ready to go. Send me the TCO template and a specific case study from a company similar to ours -- 500 nodes, mid-market, budget-constrained. If the numbers work, we can talk further.',
-        },
-      ],
-      scores: [2, 1, 3, 2, 2],
-      strengths: [
-        'Acknowledged the budget concern and didn\'t push back defensively -- "I understand budget is a concern."',
-        'Offered to send follow-up materials, showing awareness of next steps even if late.',
-      ],
-      improvement:
-        'Come prepared with specific ROI frameworks. When Casey said they don\'t track manual task time, that\'s a discovery opportunity: "That\'s actually really common. Let me walk you through a quick exercise -- how many hours per week does your team spend on patching, provisioning, or incident response? If it\'s even 20 hours across the team at a loaded rate of $85/hour, that\'s $88K a year in manual effort. Our customers typically automate 60-70% of that in the first year, which puts your payback under 12 months."',
-      overall: 'Understood the objection but was completely unprepared to address it with specifics -- lost credibility by not having ROI data ready.',
-    },
-
-    // ═══════════════════════════════════════════════════════════════════════
     // MEDIOCRE REP (Jordan) — Session 1
     // ═══════════════════════════════════════════════════════════════════════
     {
@@ -250,84 +191,6 @@ function buildMockSessions(): SimSession[] {
       improvement:
         'Good overall but could have asked more discovery questions earlier. In round 1, after Jamie mentioned AWX on a single VM with 5 users, you could have asked: "How are you handling credential management today? And has your security team flagged any audit requirements for your automation tooling?" This would have surfaced the SOC 2 pain point in round 1 instead of waiting for Jamie to volunteer it in round 2.',
       overall: 'Solid handling of a technical evaluator -- built trust by respecting AWX, connected to real pain points, and advanced to a clear next step.',
-    },
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // MEDIOCRE REP (Jordan) — Session 2
-    // ═══════════════════════════════════════════════════════════════════════
-    {
-      repName: 'Jordan (Mediocre)',
-      repLevel: 'MEDIOCRE',
-      scenarioTitle: "Our cloud provider's native tools handle everything.",
-      personaName: RILEY_PARK.name,
-      personaTitle: RILEY_PARK.title,
-      rounds: [
-        {
-          repResponse:
-            'I understand -- when you\'re 80% AWS, Systems Manager and CloudFormation feel like the natural choice. The challenge we see is when organizations start going multi-cloud or hybrid. You mentioned an Azure footprint growing to 20% from an acquisition. How are you handling automation consistency between your AWS and Azure environments today?',
-          prospectResponse:
-            'That\'s a fair question. Right now we don\'t have consistency -- it\'s CloudFormation in AWS and we\'re just starting to figure out Azure. Two different toolchains, two different skill sets. But I could solve that with Terraform as the common layer. Why Ansible over Terraform for this?',
-        },
-        {
-          repResponse:
-            'Terraform is excellent for infrastructure provisioning -- the Day 0/1 IaC story. Where Ansible complements Terraform is everything after provisioning: Day 2 operations like patching, configuration drift remediation, application deployment, certificate rotation. You also mentioned 50 on-prem servers -- Terraform doesn\'t manage those workloads. AAP gives you one automation language across cloud, on-prem, and edge.',
-          prospectResponse:
-            'Hmm, the Day 0/1 versus Day 1/2 framing makes sense. We do have a gap in Day 2 ops -- patching is still largely manual and drift remediation is a problem. But I\'m concerned about adding another tool to our stack. My team already manages CloudFormation, Terraform, and various Lambda functions. Will Ansible be yet another thing to maintain?',
-        },
-        {
-          repResponse:
-            'That\'s a valid concern. The goal isn\'t to add complexity -- it\'s to consolidate your Day 2 operations under one framework. Instead of custom Lambda functions for patching and ad-hoc scripts for your on-prem servers, you\'d have a single approach. AAP\'s execution environments also mean your team doesn\'t have to manage Python dependencies. I think a technical workshop where we map your current Day 2 gaps to Ansible solutions would be the most productive next step. Interested?',
-          prospectResponse:
-            'A technical workshop could work. But I want it to be hands-on, not a slide deck -- I want to see Ansible actually managing a mixed AWS/Azure/on-prem scenario. If you can set that up, I\'ll bring my two platform engineers. Let\'s schedule it.',
-        },
-      ],
-      scores: [4, 4, 4, 3, 4],
-      strengths: [
-        'Excellent use of the Day 0/1 vs Day 1/2 framework to position Ansible as complementary to Terraform rather than competitive -- Riley explicitly said "that framing makes sense."',
-        'Good discovery question in round 1 about multi-cloud consistency, which surfaced the real gap.',
-      ],
-      improvement:
-        'Could have been more specific about the on-prem angle. Riley mentioned 50 on-prem servers managed with ad-hoc scripts, and a CTO mandate for hybrid cloud. You could have said: "Your CTO mandated a hybrid strategy, but your on-prem automation is ad-hoc scripts that nobody else can maintain. AAP lets you use the same YAML playbooks for on-prem, AWS, and Azure -- same language, same governance, same audit trail. That\'s the consistency your CTO is asking for."',
-      overall: 'Strong performance with good positioning and clear next step -- ready for this scenario with minor refinements.',
-    },
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // MEDIOCRE REP (Jordan) — Session 3
-    // ═══════════════════════════════════════════════════════════════════════
-    {
-      repName: 'Jordan (Mediocre)',
-      repLevel: 'MEDIOCRE',
-      scenarioTitle: "We're early in our automation journey -- we're not ready for a platform.",
-      personaName: CASEY_WILLIAMS.name,
-      personaTitle: CASEY_WILLIAMS.title,
-      rounds: [
-        {
-          repResponse:
-            'I understand the concern about getting ahead of yourselves. A lot of our most successful customers started exactly where you are -- a few engineers with 20 playbooks. The advantage of starting with AAP early is that you build on a foundation of best practices from day one. You avoid the technical debt that comes from outgrowing ad-hoc approaches.',
-          prospectResponse:
-            'That makes sense in theory, but I\'m managing a team of 15 and we\'re overwhelmed as it is. Adding a full platform feels like it would slow us down when we need to be speeding up. My engineers just started writing playbooks 6 months ago. What does "start with AAP" even look like at our stage? Are you suggesting we deploy the whole platform right away?',
-        },
-        {
-          repResponse:
-            'No, definitely not all at once. You can start with just the Controller component -- that gives you a centralized place to run playbooks, basic RBAC so you know who\'s running what, and a web UI that your less technical team members can use without touching the command line. It\'s literally a layer on top of what your team is already doing. No rip-and-replace, no new language to learn.',
-          prospectResponse:
-            'A centralized place to run things instead of individual laptops... that would help. We had an incident last month where someone ran a playbook against the wrong inventory. But my team is 3 engineers writing automation and 12 others who consume it. Is AAP practical for a team that small? And what does the ramp-up look like time-wise?',
-        },
-        {
-          repResponse:
-            'Absolutely. In fact, a team of 3 creators and 12 consumers is a great fit -- the Controller lets those 12 people run approved automation through a simple web interface without CLI access. Ramp-up is typically a few days for basic setup and a couple weeks for your team to get comfortable. Red Hat also offers training courses. I\'d suggest starting with a small proof of concept -- maybe automate one of your most painful manual processes. Want me to set up a guided POC?',
-          prospectResponse:
-            'A guided POC focused on a specific pain point -- I like that approach. Our most painful manual process is probably OS patching, which takes my team two full days every month. If we could automate that as the first use case, it would prove the value quickly. Let me talk to my team and get back to you on timing.',
-        },
-      ],
-      scores: [3, 3, 4, 3, 4],
-      strengths: [
-        'Good at meeting the prospect where they are -- correctly suggested starting with just Controller, not the full platform, which addressed Casey\'s overwhelm concern.',
-        'Successfully advanced to a concrete next step with a focused POC on OS patching.',
-      ],
-      improvement:
-        'Missed an opportunity to quantify the value of the POC. When Casey said patching takes "two full days every month," you could have said: "Two full days a month is roughly 24 FTE-days per year. At even a modest loaded rate, that\'s $25-30K in annual labor on a single task. If we can automate 80% of that in the POC, you\'d have your business case for the platform right there." Always quantify when the prospect gives you a number.',
-      overall: 'Good consultative approach and appropriate scoping -- slightly held back by not quantifying the value when the prospect handed it to you.',
     },
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -371,45 +234,6 @@ function buildMockSessions(): SimSession[] {
 
     // ═══════════════════════════════════════════════════════════════════════
     // STRONG REP (Taylor) — Session 2
-    // ═══════════════════════════════════════════════════════════════════════
-    {
-      repName: 'Taylor (Strong)',
-      repLevel: 'STRONG',
-      scenarioTitle: 'We standardized on Terraform for all our infrastructure automation.',
-      personaName: RILEY_PARK.name,
-      personaTitle: RILEY_PARK.title,
-      rounds: [
-        {
-          repResponse:
-            'Terraform is a great choice for infrastructure provisioning -- I\'d never suggest replacing it. But I\'m curious about what happens after you provision. You manage 3,000+ resources across AWS and Azure -- once those VMs and containers are running, how does your team handle things like OS patching, configuration drift, application updates, and network device management?',
-          prospectResponse:
-            'Good question. Honestly, Day 2 is our weak spot. Patching is a combination of SSM in AWS and manual processes in Azure. Configuration drift? We detect it but remediation is manual. Application deployment is a mix of custom scripts and CI/CD pipelines. Network devices are still managed by hand. It\'s messy.',
-        },
-        {
-          repResponse:
-            'That\'s really common in Terraform-heavy shops -- Day 0 and Day 1 are clean, but Day 2 ends up being a patchwork. Here\'s where Ansible fits: it owns the Day 2 operational space that Terraform intentionally doesn\'t cover. Same YAML declarative approach your team is used to with IaC thinking, but for ongoing operations. The two integrate well -- Terraform provisions, Ansible configures and maintains. And for your network devices, Ansible has certified collections for Cisco, Juniper, Arista, Palo Alto -- Terraform has minimal support there. What networking gear are you running?',
-          prospectResponse:
-            'Cisco and Palo Alto primarily. Network automation is actually a big initiative for us this quarter -- our network team is drowning in manual changes. If Ansible can handle network automation alongside the server-side Day 2 stuff, that\'s a much broader value proposition than I initially assumed. How does AAP specifically help versus just using ansible-playbook from a control node?',
-        },
-        {
-          repResponse:
-            'Great question. The difference is governance at scale. With ansible-playbook, you have the same problem you already solved with Terraform Cloud -- no RBAC, no audit trail, no credential management. AAP\'s Controller provides all of that. Automation mesh lets your network team run automation from inside their network zone without opening SSH from a central server. And certified Cisco and Palo Alto collections mean you\'re running tested, supported modules -- not community best-effort. I\'d suggest a joint workshop with your platform and network teams to map out both Day 2 server ops and network automation use cases. That way you see the full scope. How does that sound?',
-          prospectResponse:
-            'That actually reframes this from "another server tool" to "our cross-domain Day 2 operations platform." I didn\'t realize the network automation angle was this strong. A joint workshop with both teams makes sense -- I\'ll loop in our network lead. Let\'s find a date.',
-        },
-      ],
-      scores: [5, 5, 5, 4, 5],
-      strengths: [
-        'Perfect complementary positioning -- established "Day 0/1 = Terraform, Day 1/2 = Ansible" from the first sentence and never positioned as competitive, which disarmed Riley immediately.',
-        'Expanded the conversation from server automation to network automation, which Riley called a "much broader value proposition" -- effectively increased the deal scope while solving a real problem.',
-      ],
-      improvement:
-        'Could have asked one more discovery question about the CTO\'s hybrid cloud mandate to connect AAP to a strategic initiative. Something like: "Your CTO mandated hybrid cloud. How are you ensuring automation consistency as Azure grows from 20% to potentially 50%? That\'s where a single automation platform across both clouds becomes strategic, not just tactical." This would elevate the conversation to C-level priorities.',
-      overall: 'Excellent execution -- effectively expanded scope from a narrow server tool conversation to a cross-domain platform sale.',
-    },
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // STRONG REP (Taylor) — Session 3
     // ═══════════════════════════════════════════════════════════════════════
     {
       repName: 'Taylor (Strong)',
@@ -668,7 +492,7 @@ async function main() {
 
     for (const mock of mockSessions) {
       process.stdout.write(`${DIM}  Running: ${mock.repName} vs ${mock.personaName}...${RESET}`);
-      const persona = [MORGAN_CHEN, JAMIE_TORRES, CASEY_WILLIAMS, RILEY_PARK, SAM_OKAFOR].find(
+      const persona = [MORGAN_CHEN, JAMIE_TORRES, SAM_OKAFOR].find(
         (p) => p.name === mock.personaName,
       )!;
       const repResponses = mock.rounds.map((r) => r.repResponse);
