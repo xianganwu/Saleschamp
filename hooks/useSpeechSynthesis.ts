@@ -115,9 +115,21 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
         let currentIndex = 0;
         let settled = false;
 
+        // Chrome/macOS keepalive: periodically pause/resume to prevent
+        // the TTS engine from hanging (known Chrome bug where onend never fires).
+        const keepAlive = setInterval(() => {
+          if (!window.speechSynthesis.speaking) {
+            clearInterval(keepAlive);
+            return;
+          }
+          window.speechSynthesis.pause();
+          window.speechSynthesis.resume();
+        }, 3_000);
+
         const finish = () => {
           if (settled) return;
           settled = true;
+          clearInterval(keepAlive);
           setIsSpeaking(false);
           window.speechSynthesis.cancel();
           resolve();
@@ -195,6 +207,8 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
       return { supported: false, voiceCount: 0, voiceNames: [], testPassed: false, error: 'speechSynthesis not available' };
     }
 
+    window.speechSynthesis.cancel();
+
     const voices = window.speechSynthesis.getVoices();
     const voiceNames = voices.map((v) => v.name);
     const result: AudioTestResult = {
@@ -209,22 +223,40 @@ export function useSpeechSynthesis(): UseSpeechSynthesisReturn {
       return result;
     }
 
+    // Pick an explicit English voice (macOS default voice can hang in Chrome)
+    const voice = findVoice(voices, ['Samantha', 'Alex', 'Daniel']);
+
     return new Promise((resolve) => {
       const timeout = setTimeout(() => {
+        clearInterval(keepAlive);
         window.speechSynthesis.cancel();
         result.error = 'Speech timed out — no onend fired';
         resolve(result);
       }, 5_000);
 
-      const utterance = new SpeechSynthesisUtterance('Test');
+      const utterance = new SpeechSynthesisUtterance('Testing audio. Can you hear this?');
       utterance.volume = 1;
+      if (voice) utterance.voice = voice;
+
+      // Chrome keepalive workaround
+      const keepAlive = setInterval(() => {
+        if (!window.speechSynthesis.speaking) {
+          clearInterval(keepAlive);
+          return;
+        }
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      }, 1_000);
+
       utterance.onend = () => {
         clearTimeout(timeout);
+        clearInterval(keepAlive);
         result.testPassed = true;
         resolve(result);
       };
       utterance.onerror = (event) => {
         clearTimeout(timeout);
+        clearInterval(keepAlive);
         result.error = `Speech error: ${event.error}`;
         resolve(result);
       };

@@ -184,14 +184,16 @@ export function useSession(): UseSessionReturn {
 
       const intro = buildIntroScript(scenario.title, persona);
 
+      const introEntry: SessionEntry = {
+        speaker: 'prospect',
+        text: intro,
+        round: 1,
+        timestamp: new Date(),
+      };
+      store.addTranscriptEntry(introEntry);
       store.setTurnState('prospect');
 
-      try {
-        await synthesis.speak(intro, persona.voiceConfig);
-      } catch (err) {
-        console.error('Intro TTS failed:', err);
-        setError('Audio playback failed. Check your browser supports speech synthesis.');
-      }
+      await synthesis.speak(intro, persona.voiceConfig);
 
       store.setTurnState('rep');
     },
