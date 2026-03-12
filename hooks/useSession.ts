@@ -54,7 +54,10 @@ export interface UseSessionReturn {
 
 export function useSession(): UseSessionReturn {
   const store = useSessionStore();
-  const recognition = useSpeechRecognition();
+  // submitRef lets the silence-timeout auto-stop submit text without
+  // a circular dependency between recognition and submitRepArgument.
+  const submitRef = useRef<(text: string) => void>(() => {});
+  const recognition = useSpeechRecognition((text) => submitRef.current(text));
   const synthesis = useSpeechSynthesis();
 
   const [error, setError] = useState<string | null>(null);
@@ -106,6 +109,11 @@ export function useSession(): UseSessionReturn {
       if (processingRef.current) return;
       processingRef.current = true;
       clearError();
+      // Stop listening if still active (covers auto-stop callback path
+      // where recognition already stopped, and manual text submission)
+      if (recognition.isListening) {
+        recognition.stopListening();
+      }
 
       const { scenario, persona, currentRound } = useSessionStore.getState();
       if (!scenario || !persona) {
@@ -149,8 +157,12 @@ export function useSession(): UseSessionReturn {
         processingRef.current = false;
       }
     },
-    [store, clearError, playProspectResponse],
+    [store, clearError, playProspectResponse, recognition],
   );
+
+  // Keep submitRef in sync so the silence-timeout auto-stop callback
+  // always calls the latest submitRepArgument.
+  submitRef.current = submitRepArgument;
 
   const startRepTurn = useCallback(() => {
     if (store.turnState !== 'rep') return;

@@ -40,14 +40,27 @@ export interface UseSpeechRecognitionReturn {
   reset: () => void;
 }
 
-export function useSpeechRecognition(): UseSpeechRecognitionReturn {
+/**
+ * @param onAutoStop Called when the silence timer auto-stops recording and
+ *   there is captured text. Receives the full transcript (final + interim).
+ *   Without this, auto-stop would discard the user's speech.
+ */
+export function useSpeechRecognition(
+  onAutoStop?: (text: string) => void,
+): UseSpeechRecognitionReturn {
   const [isSupported] = useState(() => getSpeechRecognition() !== null);
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
 
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
   const finalTranscriptRef = useRef('');
+  // Tracks the full displayed transcript (final + interim) so stopListening
+  // can return it. On mobile Chrome, results often stay "interim" until
+  // stop() is called, so finalTranscriptRef alone would be empty.
+  const fullTranscriptRef = useRef('');
   const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onAutoStopRef = useRef(onAutoStop);
+  onAutoStopRef.current = onAutoStop;
 
   const clearSilenceTimer = useCallback(() => {
     if (silenceTimerRef.current !== null) {
@@ -63,7 +76,10 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
       recognitionRef.current = null;
     }
     setIsListening(false);
-    return finalTranscriptRef.current;
+    // Return full transcript including interim text. On mobile Chrome,
+    // most text stays interim until stop() is called, so
+    // finalTranscriptRef alone is often empty.
+    return fullTranscriptRef.current || finalTranscriptRef.current;
   }, [clearSilenceTimer]);
 
   const startListening = useCallback(() => {
@@ -76,6 +92,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
     }
 
     finalTranscriptRef.current = '';
+    fullTranscriptRef.current = '';
     setTranscript('');
 
     const recognition = new Ctor();
@@ -101,12 +118,18 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
         finalTranscriptRef.current += final;
       }
 
-      setTranscript(finalTranscriptRef.current + interim);
+      const displayed = finalTranscriptRef.current + interim;
+      fullTranscriptRef.current = displayed;
+      setTranscript(displayed);
 
       // Reset silence timer on every result
       clearSilenceTimer();
       silenceTimerRef.current = setTimeout(() => {
-        stopListening();
+        const text = stopListening();
+        // Auto-submit the captured text instead of discarding it
+        if (text.trim() && onAutoStopRef.current) {
+          onAutoStopRef.current(text.trim());
+        }
       }, SILENCE_TIMEOUT_MS);
     };
 
@@ -136,6 +159,7 @@ export function useSpeechRecognition(): UseSpeechRecognitionReturn {
   const reset = useCallback(() => {
     stopListening();
     finalTranscriptRef.current = '';
+    fullTranscriptRef.current = '';
     setTranscript('');
   }, [stopListening]);
 
