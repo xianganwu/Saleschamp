@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { SessionApiRequest, SessionApiResponse } from '@/types/session';
-import { PROSPECT_SYSTEM_PROMPT, buildConversationHistory } from '@/lib/prompts';
+import { getProspectPrompt, buildConversationHistory } from '@/lib/prompts';
 import { getPersonaById } from '@/lib/personas';
 
 export const maxDuration = 30;
@@ -19,7 +19,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const body = (await request.json()) as SessionApiRequest;
-  const { messages, scenario, scenarioContext, personaId, round } = body;
+  const { messages, scenario, scenarioContext, personaId, round, mode = 'objection', discoveryLayers } = body;
 
   if (!scenario || !personaId || !round || !messages) {
     return Response.json(
@@ -42,7 +42,7 @@ export async function POST(request: Request): Promise<Response> {
     const result = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 200,
-      system: PROSPECT_SYSTEM_PROMPT(scenario, scenarioContext, persona, round),
+      system: getProspectPrompt(mode, scenario, scenarioContext, persona, round, discoveryLayers),
       messages: conversationHistory,
     });
 

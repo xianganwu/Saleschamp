@@ -8,16 +8,9 @@ import { callFeedbackAPI } from '@/lib/session-engine';
 import { ProspectAvatar } from '@/components/session/ProspectAvatar';
 import { TranscriptBubble } from '@/components/session/TranscriptBubble';
 import { Button } from '@/components/ui/Button';
-import { getRecommendation } from '@/lib/recommendations';
+import { getRecommendation, getCrossModeRecommendation } from '@/lib/recommendations';
+import { getModeConfig } from '@/lib/mode-config';
 import type { FeedbackApiResponse } from '@/types/session';
-
-const SCORE_LABELS = [
-  'Objection Acknowledgment',
-  'Value Articulation',
-  'Competitive Accuracy',
-  'Discovery & Listening',
-  'Conversation Advancement',
-];
 
 function ScoreBar({ label, score, delay }: { label: string; score: number; delay: number }) {
   const pct = (score / 5) * 100;
@@ -85,7 +78,7 @@ function getInitials(name: string): string {
 
 export default function ResultsPage() {
   const router = useRouter();
-  const { scenario, persona, transcript, resetSession } = useSessionStore();
+  const { mode, scenario, persona, transcript, resetSession } = useSessionStore();
 
   const [feedback, setFeedback] = useState<FeedbackApiResponse | null>(null);
   const [feedbackLoading, setFeedbackLoading] = useState(true);
@@ -103,7 +96,7 @@ export default function ResultsPage() {
     setFeedbackLoading(true);
     setFeedbackError(null);
     try {
-      const result = await callFeedbackAPI(transcript, scenario.title, persona.id);
+      const result = await callFeedbackAPI(transcript, scenario.title, persona.id, mode);
       setFeedback(result);
     } catch {
       setFeedbackError('Failed to load feedback. Tap retry.');
@@ -132,7 +125,11 @@ export default function ResultsPage() {
   }, [resetSession, router]);
 
   const recommendation = feedback && scenario
-    ? getRecommendation(feedback.scores, scenario.id)
+    ? getRecommendation(feedback.scores, scenario.id, mode)
+    : null;
+
+  const crossModeRec = feedback
+    ? getCrossModeRecommendation(feedback.scores, mode)
     : null;
 
   const handlePracticeRecommended = useCallback(() => {
@@ -142,6 +139,13 @@ export default function ResultsPage() {
     useSessionStore.getState().setPersona(recommendation.persona);
     router.push('/session');
   }, [recommendation, resetSession, router]);
+
+  const handleTryCrossMode = useCallback(() => {
+    if (!crossModeRec) return;
+    resetSession();
+    useSessionStore.getState().setMode(crossModeRec.targetMode);
+    router.push('/');
+  }, [crossModeRec, resetSession, router]);
 
   if (!scenario) return null;
 
@@ -200,7 +204,7 @@ export default function ResultsPage() {
               transition={{ delay: 0.3 }}
               className="w-full rounded-xl border border-white/5 bg-surface/60 p-5 space-y-4"
             >
-              {SCORE_LABELS.map((label, i) => (
+              {getModeConfig(mode).scoreDimensions.map((label, i) => (
                 <ScoreBar
                   key={label}
                   label={label}
@@ -317,6 +321,29 @@ export default function ResultsPage() {
               className="rounded-lg bg-secondary/15 px-4 py-2 text-sm font-semibold text-secondary transition-colors hover:bg-secondary/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary"
             >
               Practice This
+            </button>
+          </motion.div>
+        )}
+
+        {/* Cross-mode recommendation */}
+        {crossModeRec && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.6 }}
+            className="w-full rounded-xl border border-accent/20 bg-accent/5 p-5"
+          >
+            <h3 className="mb-1 text-xs font-semibold uppercase tracking-wider text-accent">
+              Try a Different Mode
+            </h3>
+            <p className="mb-3 text-sm leading-relaxed text-white/50">
+              {crossModeRec.reason}
+            </p>
+            <button
+              onClick={handleTryCrossMode}
+              className="rounded-lg bg-accent/15 px-4 py-2 text-sm font-semibold text-accent transition-colors hover:bg-accent/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              Try {crossModeRec.modeLabel}
             </button>
           </motion.div>
         )}

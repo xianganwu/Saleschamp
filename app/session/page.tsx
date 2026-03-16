@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSession } from '@/hooks/useSession';
+import { useSessionStore } from '@/lib/store';
 import { ProspectAvatar } from '@/components/session/ProspectAvatar';
 import { VoiceButton } from '@/components/session/VoiceButton';
 import { TranscriptBubble } from '@/components/session/TranscriptBubble';
@@ -28,6 +29,7 @@ function getInitials(name: string): string {
 export default function SessionPage() {
   const router = useRouter();
   const session = useSession();
+  const { mode, maxRounds } = useSessionStore();
   const transcriptEndRef = useRef<HTMLDivElement>(null);
   const [started, setStarted] = useState(false);
   const [compatDismissed, setCompatDismissed] = useState(false);
@@ -142,7 +144,7 @@ export default function SessionPage() {
             <span className="ml-1 text-white/20">{session.persona.title}</span>
           </p>
         </div>
-        <RoundIndicator currentRound={session.currentRound} maxRounds={3} />
+        <RoundIndicator currentRound={session.currentRound} maxRounds={maxRounds} />
       </header>
 
       {/* Main arena */}
@@ -205,7 +207,11 @@ export default function SessionPage() {
               animate={{ opacity: 1 }}
               className="mt-8 text-center text-sm text-white/25"
             >
-              Respond to the prospect&apos;s objection.
+              {mode === 'pitch'
+                ? 'Deliver your elevator pitch.'
+                : mode === 'discovery'
+                  ? 'Start by asking a question to understand their needs.'
+                  : 'Respond to the prospect\u0027s objection.'}
             </motion.p>
           )}
         </div>

@@ -1,16 +1,21 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import type { Scenario, ScenarioCategory } from '@/types/session';
+import type { Scenario, ScenarioCategory, SessionMode } from '@/types/session';
 import { SCENARIOS, CATEGORY_LABELS } from '@/lib/scenarios';
 import { ScenarioCard } from '@/components/home/ScenarioCard';
 
 interface ScenarioGridProps {
   selectedScenario: Scenario | null;
   onSelectScenario: (scenario: Scenario) => void;
+  mode: SessionMode;
 }
 
-const CATEGORY_ORDER: ScenarioCategory[] = ['upstream', 'competitive', 'value', 'technical'];
+const CATEGORY_ORDER_BY_MODE: Record<SessionMode, ScenarioCategory[]> = {
+  objection: ['upstream', 'competitive', 'value', 'technical'],
+  pitch: ['pitch'],
+  discovery: ['discovery'],
+};
 
 const containerVariants = {
   hidden: {},
@@ -28,12 +33,14 @@ const cardVariants = {
   },
 };
 
-export function ScenarioGrid({ selectedScenario, onSelectScenario }: ScenarioGridProps) {
-  const scenariosByCategory = CATEGORY_ORDER.map((cat) => ({
+export function ScenarioGrid({ selectedScenario, onSelectScenario, mode }: ScenarioGridProps) {
+  const categoryOrder = CATEGORY_ORDER_BY_MODE[mode];
+  const modeScenarios = SCENARIOS.filter((s) => s.mode === mode);
+  const scenariosByCategory = categoryOrder.map((cat) => ({
     category: cat,
     label: CATEGORY_LABELS[cat],
-    scenarios: SCENARIOS.filter((s) => s.category === cat),
-  }));
+    scenarios: modeScenarios.filter((s) => s.category === cat),
+  })).filter((group) => group.scenarios.length > 0);
 
   return (
     <motion.div

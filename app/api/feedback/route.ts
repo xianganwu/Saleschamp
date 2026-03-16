@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { FeedbackApiRequest, FeedbackApiResponse } from '@/types/session';
-import { COACH_FEEDBACK_PROMPT } from '@/lib/prompts';
+import { getCoachPrompt } from '@/lib/prompts';
 import { getPersonaById } from '@/lib/personas';
 
 export const maxDuration = 30;
@@ -53,7 +53,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const body = (await request.json()) as FeedbackApiRequest;
-  const { transcript, scenario, personaId } = body;
+  const { transcript, scenario, personaId, mode = 'objection' } = body;
 
   if (!transcript || transcript.length === 0 || !scenario || !personaId) {
     return Response.json(
@@ -72,7 +72,7 @@ export async function POST(request: Request): Promise<Response> {
       messages: [
         {
           role: 'user',
-          content: COACH_FEEDBACK_PROMPT(transcript, scenario, personaName),
+          content: getCoachPrompt(mode, transcript, scenario, personaName),
         },
       ],
     });

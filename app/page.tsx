@@ -5,14 +5,16 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ScenarioGrid } from '@/components/home/ScenarioGrid';
 import { PersonaSelector } from '@/components/home/PersonaSelector';
+import { ModeSelector } from '@/components/home/ModeSelector';
 import { Button } from '@/components/ui/Button';
 import { useSessionStore } from '@/lib/store';
-import type { Persona, Scenario } from '@/types/session';
+import type { Persona, Scenario, SessionMode } from '@/types/session';
 
 export default function HomePage() {
   const router = useRouter();
-  const { setScenario, setPersona } = useSessionStore();
+  const { setScenario, setPersona, setMode } = useSessionStore();
 
+  const [selectedMode, setSelectedMode] = useState<SessionMode>('objection');
   const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
   const [voiceSupported] = useState(
@@ -24,8 +26,15 @@ export default function HomePage() {
 
   const canStart = selectedScenario !== null && selectedPersona !== null;
 
+  function handleModeChange(mode: SessionMode) {
+    setSelectedMode(mode);
+    setSelectedScenario(null);
+    setSelectedPersona(null);
+  }
+
   function handleStart() {
     if (!selectedScenario || !selectedPersona) return;
+    setMode(selectedMode);
     setScenario(selectedScenario);
     setPersona(selectedPersona);
     router.push('/session');
@@ -49,6 +58,9 @@ export default function HomePage() {
             Choose a scenario, pick a prospect persona, and sharpen your pitch.
           </p>
         </motion.div>
+
+        {/* Mode Selector */}
+        <ModeSelector selectedMode={selectedMode} onSelectMode={handleModeChange} />
 
         {/* Browser compat banner */}
         {!voiceSupported && !compatDismissed && (
@@ -81,6 +93,7 @@ export default function HomePage() {
               setSelectedScenario(scenario);
               setSelectedPersona(null);
             }}
+            mode={selectedMode}
           />
         </section>
 

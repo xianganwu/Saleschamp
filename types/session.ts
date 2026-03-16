@@ -1,3 +1,20 @@
+export type SessionMode = 'objection' | 'pitch' | 'discovery';
+
+export interface ModeConfig {
+  readonly mode: SessionMode;
+  readonly label: string;
+  readonly description: string;
+  readonly maxRounds: number;
+  readonly repGoesFirst: boolean;
+  readonly scoreDimensions: readonly string[];
+}
+
+export interface DiscoveryLayers {
+  readonly surface: string;
+  readonly mid: string;
+  readonly deep: string;
+}
+
 export interface Scenario {
   readonly id: string;
   readonly title: string;
@@ -5,9 +22,11 @@ export interface Scenario {
   readonly category: ScenarioCategory;
   readonly context: string;
   readonly tips: readonly string[];
+  readonly mode: SessionMode;
+  readonly discoveryLayers?: DiscoveryLayers;
 }
 
-export type ScenarioCategory = 'upstream' | 'competitive' | 'value' | 'technical';
+export type ScenarioCategory = 'upstream' | 'competitive' | 'value' | 'technical' | 'pitch' | 'discovery';
 
 export interface Persona {
   readonly id: PersonaId;
@@ -17,6 +36,7 @@ export interface Persona {
   readonly style: string;
   readonly hotButtons: string;
   readonly convincedBy: string;
+  readonly environment: string;
   readonly voiceConfig: VoiceConfig;
 }
 
@@ -52,13 +72,15 @@ export interface ScoreCard {
 }
 
 export interface SessionState {
+  mode: SessionMode;
   scenario: Scenario | null;
   persona: Persona | null;
   currentRound: number;
-  maxRounds: 3;
+  maxRounds: number;
   turnState: TurnState;
   transcript: readonly SessionEntry[];
 
+  setMode: (mode: SessionMode) => void;
   setScenario: (scenario: Scenario) => void;
   setPersona: (persona: Persona) => void;
   addTranscriptEntry: (entry: SessionEntry) => void;
@@ -73,6 +95,8 @@ export interface SessionApiRequest {
   readonly scenarioContext: string;
   readonly personaId: PersonaId;
   readonly round: number;
+  readonly mode: SessionMode;
+  readonly discoveryLayers?: DiscoveryLayers;
 }
 
 export interface SessionApiResponse {
@@ -84,6 +108,7 @@ export interface FeedbackApiRequest {
   readonly transcript: readonly SessionEntry[];
   readonly scenario: string;
   readonly personaId: PersonaId;
+  readonly mode: SessionMode;
 }
 
 export interface FeedbackApiResponse {

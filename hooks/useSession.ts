@@ -6,7 +6,8 @@ import { callSessionAPI, callFeedbackAPI } from '@/lib/session-engine';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useSpeechSynthesis } from '@/hooks/useSpeechSynthesis';
 import { playSound } from '@/lib/sounds';
-import type { FeedbackApiResponse, Persona, Scenario, SessionEntry } from '@/types/session';
+import type { FeedbackApiResponse, Persona, Scenario, SessionEntry, SessionMode } from '@/types/session';
+import { getModeConfig } from '@/lib/mode-config';
 
 function toUserFriendlyError(err: unknown): string {
   const raw = err instanceof Error ? err.message : String(err);
@@ -20,13 +21,24 @@ function toUserFriendlyError(err: unknown): string {
   return 'Something went wrong. Try again.';
 }
 
-function buildIntroScript(scenario: string, persona: Persona): string {
+function buildIntroScript(scenario: string, persona: Persona, mode: SessionMode): string {
+  if (mode === 'discovery') {
+    return (
+      `Hi, thanks for coming in. I'm ${persona.name}, ${persona.title}. ` +
+      `We've been a Red Hat customer for a while now. ` +
+      `I'm curious to hear what else you think might help us. What would you like to know about our environment?`
+    );
+  }
   return (
     `Hi, I'm ${persona.name}, ${persona.title}. ` +
     `Thanks for taking the time today. ` +
     `So, regarding ${scenario.toLowerCase().replace(/\.$/, '')} -- ` +
     `I'd like to hear your pitch.`
   );
+}
+
+function buildPitchContextLine(scenario: Scenario, persona: Persona): string {
+  return `You're meeting ${persona.name}, ${persona.title}. Scenario: ${scenario.title}. Deliver your pitch.`;
 }
 
 export interface UseSessionReturn {
@@ -88,6 +100,7 @@ export function useSession(): UseSessionReturn {
             currentState.transcript,
             currentState.scenario?.title ?? '',
             currentState.persona?.id ?? 'morgan_chen',
+            currentState.mode,
           );
           setFeedback(result);
         } catch (err) {
@@ -115,7 +128,7 @@ export function useSession(): UseSessionReturn {
         recognition.stopListening();
       }
 
-      const { scenario, persona, currentRound } = useSessionStore.getState();
+      const { scenario, persona, currentRound, mode } = useSessionStore.getState();
       if (!scenario || !persona) {
         processingRef.current = false;
         return;
@@ -138,6 +151,8 @@ export function useSession(): UseSessionReturn {
           scenario.context,
           persona.id,
           currentRound,
+          mode,
+          scenario.discoveryLayers,
         );
 
         const prospectEntry: SessionEntry = {
@@ -191,23 +206,40 @@ export function useSession(): UseSessionReturn {
       setFeedback(null);
       clearError();
 
+      const mode = useSessionStore.getState().mode;
+      const modeConfig = getModeConfig(mode);
+
       store.setScenario(scenario);
       store.setPersona(persona);
 
-      const intro = buildIntroScript(scenario.title, persona);
+      if (modeConfig.repGoesFirst) {
+        // Pitch mode: show context, then rep goes first
+        const contextLine = buildPitchContextLine(scenario, persona);
+        const contextEntry: SessionEntry = {
+          speaker: 'prospect',
+          text: contextLine,
+          round: 1,
+          timestamp: new Date(),
+        };
+        store.addTranscriptEntry(contextEntry);
+        store.setTurnState('rep');
+        playSound('ding');
+      } else {
+        // Objection / Discovery mode: prospect introduces themselves
+        const intro = buildIntroScript(scenario.title, persona, mode);
+        const introEntry: SessionEntry = {
+          speaker: 'prospect',
+          text: intro,
+          round: 1,
+          timestamp: new Date(),
+        };
+        store.addTranscriptEntry(introEntry);
+        store.setTurnState('prospect');
 
-      const introEntry: SessionEntry = {
-        speaker: 'prospect',
-        text: intro,
-        round: 1,
-        timestamp: new Date(),
-      };
-      store.addTranscriptEntry(introEntry);
-      store.setTurnState('prospect');
+        await synthesis.speak(intro, persona.voiceConfig);
 
-      await synthesis.speak(intro, persona.voiceConfig);
-
-      store.setTurnState('rep');
+        store.setTurnState('rep');
+      }
     },
     [store, synthesis, clearError],
   );

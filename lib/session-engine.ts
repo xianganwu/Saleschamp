@@ -1,8 +1,10 @@
 import type {
+  DiscoveryLayers,
   FeedbackApiResponse,
   PersonaId,
   SessionApiResponse,
   SessionEntry,
+  SessionMode,
 } from '@/types/session';
 
 const MAX_RETRIES = 2;
@@ -53,6 +55,8 @@ export async function callSessionAPI(
   scenarioContext: string,
   personaId: PersonaId,
   round: number,
+  mode: SessionMode,
+  discoveryLayers?: DiscoveryLayers,
 ): Promise<SessionApiResponse> {
   const response = await fetchWithRetry('/api/session', {
     messages,
@@ -60,6 +64,8 @@ export async function callSessionAPI(
     scenarioContext,
     personaId,
     round,
+    mode,
+    discoveryLayers,
   });
 
   return response.json() as Promise<SessionApiResponse>;
@@ -69,11 +75,13 @@ export async function callFeedbackAPI(
   transcript: readonly SessionEntry[],
   scenario: string,
   personaId: PersonaId,
+  mode: SessionMode,
 ): Promise<FeedbackApiResponse> {
   const response = await fetchWithRetry('/api/feedback', {
     transcript,
     scenario,
     personaId,
+    mode,
   });
 
   return response.json() as Promise<FeedbackApiResponse>;

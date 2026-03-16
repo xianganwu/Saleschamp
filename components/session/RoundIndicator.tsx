@@ -5,11 +5,17 @@ import { motion } from 'framer-motion';
 interface RoundIndicatorProps {
   currentRound: number;
   maxRounds: number;
+  roundLabels?: string[];
 }
 
-const ROUND_LABELS = ['Opening', 'Deep Dive', 'Close'];
+const DEFAULT_LABELS: Record<number, string[]> = {
+  2: ['Pitch', 'Adjust'],
+  3: ['Opening', 'Deep Dive', 'Close'],
+  5: ['Intro', 'Explore', 'Dig Deeper', 'Clarify', 'Wrap Up'],
+};
 
-export function RoundIndicator({ currentRound, maxRounds }: RoundIndicatorProps) {
+export function RoundIndicator({ currentRound, maxRounds, roundLabels }: RoundIndicatorProps) {
+  const labels = roundLabels ?? DEFAULT_LABELS[maxRounds] ?? [];
   return (
     <div className="flex items-center gap-3">
       <div className="text-right">
@@ -17,7 +23,7 @@ export function RoundIndicator({ currentRound, maxRounds }: RoundIndicatorProps)
           Round {currentRound}/{maxRounds}
         </span>
         <span className="ml-2 text-xs text-white/40">
-          {ROUND_LABELS[currentRound - 1] ?? ''}
+          {labels[currentRound - 1] ?? ''}
         </span>
       </div>
       <div className="flex gap-1.5">

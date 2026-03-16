@@ -8,6 +8,7 @@ export const SCENARIOS: readonly Scenario[] = [
     description: 'Prospect uses community Ansible for ad-hoc tasks and sees no reason to pay.',
     category: 'upstream',
     context: 'The prospect runs Ansible CLI across ~200 servers for configuration management and ad-hoc tasks. A team of 3 engineers maintains playbooks in a shared Git repo. They have no centralized credential management and run playbooks from individual laptops. They have had incidents where a junior engineer ran a playbook against production by mistake.',
+    mode: 'objection',
     tips: [
       'Lead with governance and risk, not features. The prospect already knows CLI works -- ask what happens when something goes wrong.',
       'Probe for incidents caused by lack of RBAC or audit trails before pitching solutions. Let their pain drive the conversation.',
@@ -20,6 +21,7 @@ export const SCENARIOS: readonly Scenario[] = [
     description: 'Prospect self-hosts AWX and considers it equivalent to AAP.',
     category: 'upstream',
     context: 'The prospect deployed AWX 18 months ago on a single VM. They use it for job scheduling and RBAC. They have 5 people using it. They have hit issues with upgrades (broke once during a minor version bump) and have no support contract. Their security team recently asked about SOC 2 compliance for their automation tooling.',
+    mode: 'objection',
     tips: [
       'Respect AWX -- it is Red Hat\'s upstream project. Dismissing it is a red flag for technical evaluators.',
       'Probe upgrade pain and support gaps. AWX has no SLA, no CVE response commitments, and no lifecycle guarantees.',
@@ -32,6 +34,7 @@ export const SCENARIOS: readonly Scenario[] = [
     description: 'Prospect has strong internal engineering and questions subscription value.',
     category: 'upstream',
     context: 'The prospect has a 12-person platform engineering team that is highly skilled. They run multiple open source tools without vendor support. They pride themselves on self-sufficiency. However, their mean-time-to-resolve for automation platform issues is 4-6 hours, and they had a critical CVE in an upstream dependency last quarter that took 2 weeks to patch.',
+    mode: 'objection',
     tips: [
       'Don\'t argue they need support -- reframe around opportunity cost. Their engineers spend time on infrastructure instead of innovation.',
       'Ask about CVE response times and lifecycle predictability. These are risk and velocity issues, not "support" issues.',
@@ -46,6 +49,7 @@ export const SCENARIOS: readonly Scenario[] = [
     description: 'Prospect uses Terraform extensively and sees it as the single answer.',
     category: 'competitive',
     context: 'The prospect manages 3,000+ cloud resources across AWS and Azure using Terraform. They have a mature IaC pipeline. However, they struggle with Day 2 operations: patching, configuration drift remediation, application deployment, and network device management. They have separate manual processes for these tasks.',
+    mode: 'objection',
     tips: [
       'Position Ansible as complementary, never competitive. Terraform = Day 0/1 provisioning, Ansible = Day 1/2 operations.',
       'Probe for Day 2 pain: patching, drift remediation, network devices, app deployment. These are gaps Terraform doesn\'t fill.',
@@ -58,6 +62,7 @@ export const SCENARIOS: readonly Scenario[] = [
     description: 'Prospect has an established Puppet deployment and resists change.',
     category: 'competitive',
     context: 'The prospect has 800 nodes managed by Puppet with 5 years of accumulated modules. Two senior engineers are Puppet experts. However, they are hiring for 3 open positions and candidates do not know Puppet. Their Puppet infrastructure requires dedicated agent management and a Puppet server cluster. They are expanding into cloud and containers where Puppet has less coverage.',
+    mode: 'objection',
     tips: [
       'Never call Puppet "legacy" -- it alienates technical evaluators instantly and destroys trust.',
       'Lead with coexistence: Ansible can run alongside Puppet for new workloads like cloud, containers, and network automation.',
@@ -70,6 +75,7 @@ export const SCENARIOS: readonly Scenario[] = [
     description: 'Prospect is deep in a single cloud and uses native automation.',
     category: 'competitive',
     context: 'The prospect is 80% AWS, using Systems Manager, CloudFormation, and Lambda for automation. They have a small Azure footprint growing to 20% due to an acquisition. They also have 50 on-prem servers in a data center that they manage with ad-hoc scripts. Their CTO has mandated a hybrid cloud strategy.',
+    mode: 'objection',
     tips: [
       'Focus on the hybrid/multi-cloud gap. Native tools stop at the cloud boundary -- they don\'t reach on-prem or other clouds.',
       'Probe for the second cloud or on-prem footprint they\'re managing with ad-hoc scripts. That\'s your entry point.',
@@ -82,6 +88,7 @@ export const SCENARIOS: readonly Scenario[] = [
     description: 'Prospect views ServiceNow as their automation layer.',
     category: 'competitive',
     context: 'The prospect uses ServiceNow for ticketing, change management, and basic orchestration. They have ServiceNow Orchestration but it is limited to simple API calls and VM provisioning. They want to automate network changes, OS patching, and security remediation but ServiceNow cannot reach their on-prem network devices or edge locations.',
+    mode: 'objection',
     tips: [
       'Position AAP as the execution engine behind ServiceNow, not a competitor. This is complementary.',
       'Probe for what ServiceNow can\'t reach: network devices, edge locations, on-prem infrastructure.',
@@ -96,6 +103,7 @@ export const SCENARIOS: readonly Scenario[] = [
     description: 'Classic budget objection in a cost-cutting environment.',
     category: 'value',
     context: 'The prospect is in a cost-reduction cycle. Their IT budget was cut 15% this year. They have 500 managed nodes and the AAP subscription quote is $120K/year. They currently spend approximately $180K/year in engineer time on manual processes and incident response related to automation gaps, but they have not quantified this.',
+    mode: 'objection',
     tips: [
       'Never argue the price is fair -- instead help them build the business case. Make the math do the selling.',
       'Quantify their current hidden costs: manual effort hours, incident response time, compliance gaps, and downtime.',
@@ -108,6 +116,7 @@ export const SCENARIOS: readonly Scenario[] = [
     description: 'Prospect feels AAP is overkill for their maturity level.',
     category: 'value',
     context: 'The prospect has 3 engineers who started writing Ansible playbooks 6 months ago. They have about 20 playbooks in a Git repo. They run them manually from their laptops. They want to do more automation but feel overwhelmed by the scope of a full platform. They are interested in expanding but unsure where to start.',
+    mode: 'objection',
     tips: [
       'Don\'t oversell the platform -- meet them where they are. AAP grows with them from crawl to walk to run.',
       'Start small: Controller basics let them run existing playbooks with RBAC and logging. No rewriting needed.',
@@ -120,6 +129,7 @@ export const SCENARIOS: readonly Scenario[] = [
     description: 'Prospect struggles to build an internal business case.',
     category: 'value',
     context: 'The prospect is a mid-level manager who sees the value of AAP but cannot get budget approval. Their VP wants hard numbers: cost savings, FTE equivalents, incident reduction. The prospect does not have baseline metrics for manual effort today. They need help building a business case.',
+    mode: 'objection',
     tips: [
       'This is a coaching opportunity, not a selling opportunity. Help them build the case -- partner, don\'t pitch.',
       'Offer Red Hat ROI frameworks, calculators, and reference customers with quantified outcomes they can cite.',
@@ -134,6 +144,7 @@ export const SCENARIOS: readonly Scenario[] = [
     description: 'Prospect is deep into cloud-native transformation.',
     category: 'technical',
     context: 'The prospect is migrating applications to OpenShift/Kubernetes. They have 15 clusters across dev, staging, and production. They use Helm and ArgoCD for application deployment. However, they still need to manage the underlying infrastructure: VM provisioning, OS configuration, network setup, and storage management. They also need Day 2 cluster operations.',
+    mode: 'objection',
     tips: [
       'AAP itself runs on OpenShift/K8s -- it IS cloud-native. Don\'t let them frame it as a legacy tool.',
       'Focus on what\'s around and beneath K8s: infrastructure provisioning, OS config, network, storage, and Day 2 cluster ops.',
@@ -146,6 +157,7 @@ export const SCENARIOS: readonly Scenario[] = [
     description: 'Prospect has hit scaling walls with community Ansible.',
     category: 'technical',
     context: 'The prospect manages 5,000 nodes. Running a simple fact-gathering playbook takes 45 minutes from a single control node. They have tried increasing forks but hit memory limits. They have considered breaking their inventory into smaller chunks but this adds operational complexity. They have not used execution environments or automation mesh.',
+    mode: 'objection',
     tips: [
       'Acknowledge the pain -- community Ansible from a single control node genuinely has scaling limits.',
       'Automation mesh is the direct answer: distributed execution nodes eliminate the single-bottleneck problem.',
@@ -158,6 +170,7 @@ export const SCENARIOS: readonly Scenario[] = [
     description: "Prospect's security org pushes back on SSH management.",
     category: 'technical',
     context: 'The prospect CISO flagged that SSH-based automation from a single control node is a security risk: credential sprawl, lateral movement potential, no audit trail. Their security team prefers agent-based tools where credentials stay on a central server. They have a zero-trust network architecture initiative underway.',
+    mode: 'objection',
     tips: [
       'Take the concern seriously -- security teams are right to question single-control-node SSH access.',
       'Automation mesh eliminates the single-node risk: execution nodes deploy inside each network zone with receptor protocol.',
@@ -170,10 +183,188 @@ export const SCENARIOS: readonly Scenario[] = [
     description: 'Prospect thinks cron or a simple scheduler is sufficient.',
     category: 'technical',
     context: 'The prospect runs 150 cron jobs across 30 servers for operational tasks: log rotation, backups, certificate renewal, health checks. When a cron job fails, no one knows until something downstream breaks. They have no centralized visibility, no RBAC (any admin can modify cron), and no audit trail of what ran and when.',
+    mode: 'objection',
     tips: [
       'Don\'t argue that cron is bad -- ask what happens when a cron job fails. Let them describe the pain.',
       'Probe for visibility gaps: who knows what ran, when, whether it succeeded, and who changed it?',
       'RBAC and audit trails differentiate AAP from cron. This is about governance and visibility, not just scheduling.',
+    ],
+  },
+
+  // --- Elevator Pitch Scenarios ---
+  {
+    id: 'pitch-conference-networking',
+    title: 'Conference networking -- 60 seconds between sessions',
+    description: 'VP of Infrastructure mentions their team is drowning in manual server management.',
+    category: 'pitch',
+    context: 'You are at a tech conference between sessions. You just met a VP of Infrastructure who mentioned their team spends most of their time on manual server management across 4,000 nodes. They seem open to conversation but are about to head to the next session. You have about 60 seconds.',
+    mode: 'pitch',
+    tips: [
+      'Open with their pain, not your product. "4,000 nodes manually? That sounds like it\'s eating your team alive." shows you listened.',
+      'Keep it to one clear value proposition. At 60 seconds you only have time for one compelling idea, not a feature tour.',
+      'End with a specific, low-friction ask: "Can I send you a 2-minute case study from a similar shop?" beats "Let\'s schedule a call."',
+    ],
+  },
+  {
+    id: 'pitch-executive-briefing',
+    title: 'Executive briefing opener -- CIO gave you 2 minutes',
+    description: 'Large RHEL customer with no automation platform. CIO is evaluating options.',
+    category: 'pitch',
+    context: 'You are in an executive briefing at a large enterprise that runs 5,000+ RHEL servers. The CIO has given you 2 minutes at the top of the meeting to explain what AAP is and why they should care. They already trust Red Hat (large RHEL customer) but have never explored automation platform tooling. The CIO values strategic vision over technical details.',
+    mode: 'pitch',
+    tips: [
+      'Leverage the existing Red Hat relationship. "You already trust Red Hat for your OS -- AAP extends that trust to everything you do on top of it."',
+      'Speak in executive language: risk reduction, operational velocity, talent leverage. Save the architecture details for the technical team.',
+      'Name a specific outcome from a comparable customer. "A financial services firm your size reduced unplanned downtime 60% in the first year."',
+    ],
+  },
+  {
+    id: 'pitch-cold-call',
+    title: 'Cold call -- they picked up, you have 30 seconds',
+    description: 'Senior Platform Engineer at a growing SaaS company. Skeptical of vendor calls.',
+    category: 'pitch',
+    context: 'You cold-called a Senior Platform Engineer at a fast-growing SaaS company. They actually picked up. They sound busy and slightly annoyed -- they get 5 vendor calls a week. You have about 30 seconds before they hang up. You noticed on LinkedIn that their company just posted 3 automation engineer job openings.',
+    mode: 'pitch',
+    tips: [
+      'Lead with something specific to THEM, not a generic pitch. "I saw you\'re hiring 3 automation engineers -- that tells me you\'re scaling faster than your current tooling supports."',
+      'Earn the right to continue: "I have 30 seconds, not 30 minutes." Respecting their time builds credibility instantly.',
+      'Ask permission to continue rather than pitching more: "Would it be worth a 15-minute call if I could show you how one platform could replace those 3 hires?"',
+    ],
+  },
+  {
+    id: 'pitch-partner-referral',
+    title: 'Partner referral -- a peer recommended Red Hat',
+    description: 'CISO heard from a colleague that AAP could help with compliance automation.',
+    category: 'pitch',
+    context: 'A CISO at a healthcare company was told by a peer at another organization that Red Hat AAP helped them pass their SOC 2 audit with automated evidence collection. The CISO is curious but guarded -- they have been burned by vendors over-promising on compliance automation before. They agreed to a 5-minute call based on the referral.',
+    mode: 'pitch',
+    tips: [
+      'Lead with the referral: "Sarah mentioned AAP helped her team cut audit prep from 6 weeks to 5 days." Social proof from a peer is your strongest opening.',
+      'Acknowledge their skepticism directly. "I know compliance automation gets over-promised. Let me be specific about what AAP actually does and what it doesn\'t."',
+      'For a CISO, specificity is everything. Name the exact capabilities: RBAC audit trails, credential isolation, FIPS 140-2 validation, CVE response SLAs.',
+    ],
+  },
+  {
+    id: 'pitch-tradeshow-followup',
+    title: 'Trade show follow-up -- they visited the Red Hat booth',
+    description: 'Infrastructure manager stopped by after seeing a competitor demo. Now on a follow-up call.',
+    category: 'pitch',
+    context: 'An Infrastructure manager visited the Red Hat booth at a trade show yesterday. They mentioned they had just seen a demo from a competitor (HashiCorp) and were comparing automation platforms. Today you have a 5-minute follow-up call. They manage 3,200 servers across hybrid cloud and are looking for a unified automation approach.',
+    mode: 'pitch',
+    tips: [
+      'Don\'t trash the competitor -- position thoughtfully. "Terraform is excellent at provisioning. AAP covers the 80% of the lifecycle that comes after: config, patching, compliance, operations."',
+      'Reference their stated need: "You mentioned wanting a unified approach across hybrid cloud -- that\'s exactly where one automation language across all environments pays off."',
+      'Offer a concrete comparison: "I can set up a side-by-side architecture review showing where each tool fits. Would that be useful?"',
+    ],
+  },
+
+  // --- Discovery Call Scenarios ---
+  {
+    id: 'discovery-rhel-estate',
+    title: 'RHEL customer with 3,500 servers -- exploring automation',
+    description: 'Large RHEL estate. Ops team is drowning in manual patching and config management.',
+    category: 'discovery',
+    context: 'The prospect is a large enterprise running 3,500 RHEL servers. They have been a Red Hat customer for 7 years. They requested this meeting after a webinar on automation best practices.',
+    mode: 'discovery',
+    discoveryLayers: {
+      surface: 'We run about 3,500 RHEL servers across two data centers. We have been a Red Hat customer for 7 years and are very happy with the platform. We are starting to think about automation but we are early in the process.',
+      mid: 'Our ops team of 8 engineers spends about 20 hours per week on manual patching. We had 3 incidents last quarter from configuration drift that nobody caught. Our last security audit flagged inconsistent configurations across our fleet as a material finding. We use some ad-hoc Ansible playbooks but there is no standardization or governance.',
+      deep: 'Our CTO has made automation a strategic priority for this fiscal year. There is a pre-approved budget of $250K for automation tooling. The VP of Engineering favors building something in-house, but the ops team is pushing for a supported platform. We need to show measurable progress by Q3 to keep the funding. Two other teams have started using AWX informally without IT approval.',
+    },
+    tips: [
+      'Start broad: "Tell me about your infrastructure today." Let them reveal their situation before you start narrowing.',
+      'Listen for emotional cues -- "drowning," "firefighting," "manual." These signal real pain worth exploring deeper.',
+      'Don\'t pitch until you understand. The goal is to uncover needs, not demonstrate features.',
+    ],
+  },
+  {
+    id: 'discovery-openshift-day2',
+    title: 'OpenShift customer expanding clusters -- needs Day 2 ops',
+    description: 'OpenShift customer with 12 clusters. Struggling with Day 2 operations at scale.',
+    category: 'discovery',
+    context: 'The prospect is an OpenShift customer with 12 clusters across dev, staging, and production. They are expanding to edge locations. The platform engineering lead reached out after struggling with Day 2 operations.',
+    mode: 'discovery',
+    discoveryLayers: {
+      surface: 'We run 12 OpenShift clusters and are planning to expand to edge locations next year. OpenShift has been great for our application teams. We are looking for ways to improve our operational efficiency.',
+      mid: 'Provisioning a new cluster takes our team 3 days of manual work. We have no standardized Day 2 operations -- each cluster is managed slightly differently depending on who set it up. We are deploying to 15 edge locations over the next 18 months and there is no way our current process scales. Our platform team of 6 is already at capacity.',
+      deep: 'The CIO has committed to the edge expansion as part of a manufacturing IoT initiative worth $12M. If we cannot automate cluster lifecycle management, we will need to hire 4 more platform engineers at $180K each -- the CFO has already pushed back on that headcount. Our VP of Platform Engineering has used AAP at a previous company and is a strong internal champion. We are also evaluating Crossplane but it only covers the Kubernetes layer.',
+    },
+    tips: [
+      'Ask about their expansion plans before diving into current pain. Understanding where they are going reveals why current processes will break.',
+      'Probe for the gap between OpenShift (application layer) and what sits beneath -- infrastructure, networking, storage, OS configuration.',
+      'When they mention scale challenges, quantify: "How many hours per cluster? How many clusters planned?"',
+    ],
+  },
+  {
+    id: 'discovery-security-compliance',
+    title: 'RHEL + OpenShift customer -- security team wants compliance automation',
+    description: 'Security-focused customer preparing for FedRAMP. Needs unified compliance across platforms.',
+    category: 'discovery',
+    context: 'The prospect runs both RHEL and OpenShift. Their CISO requested this meeting after their latest compliance audit took 6 weeks of manual evidence collection. They are a government contractor.',
+    mode: 'discovery',
+    discoveryLayers: {
+      surface: 'We are a government contractor running RHEL and OpenShift. Compliance is a big part of our operations. We are always looking for ways to improve our security posture.',
+      mid: 'Our last compliance audit took 6 weeks and required 4 full-time engineers pulling evidence manually. We run 3 audit cycles per year -- HIPAA, SOC 2 Type II, and we are preparing for FedRAMP Moderate. Configuration drift between audits is our biggest risk. We currently use SCAP scans but remediation is entirely manual.',
+      deep: 'We are pursuing a FedRAMP Moderate authorization that our CEO considers critical for a $40M government contract pipeline. The authorization timeline is 14 months. If we cannot demonstrate automated continuous compliance monitoring, our assessor has told us FedRAMP will take an additional 6-8 months. The CISO has direct budget authority for security tooling up to $400K without VP-level approval. We looked at Chef InSpec but it does not integrate with our OpenShift environment.',
+    },
+    tips: [
+      'For security personas, ask about their audit lifecycle: frequency, effort, findings, remediation time. This reveals the real cost.',
+      'Compliance automation is about evidence collection and continuous monitoring, not just scanning. Ask what happens BETWEEN audits.',
+      'Understand the regulatory landscape before positioning. HIPAA, SOC 2, FedRAMP, and PCI all have different requirements.',
+    ],
+  },
+  {
+    id: 'discovery-terraform-evaluation',
+    title: 'Large RHEL customer evaluating Terraform -- hasn\'t explored Ansible',
+    description: 'Platform team standardizing on IaC. Evaluating Terraform Enterprise without considering Ansible.',
+    category: 'discovery',
+    context: 'The prospect is a large RHEL customer whose platform team is evaluating Terraform Enterprise for infrastructure as code. Their Red Hat account manager flagged that they have not explored Ansible or AAP. This is an introductory meeting.',
+    mode: 'discovery',
+    discoveryLayers: {
+      surface: 'We are standardizing on infrastructure as code across the organization. We have been evaluating Terraform Enterprise for the past 2 months. Our platform team is leading the initiative.',
+      mid: 'Terraform covers our cloud provisioning needs well, but we are struggling with Day 2 operations -- patching, configuration management, and application deployment are still manual. We also have 40% of our infrastructure on-prem that will never move to cloud (regulatory requirements). Our network team has 200 devices that need automated configuration but Terraform has no coverage there. We spend 30 hours per month on manual network changes.',
+      deep: 'The platform team has already built a Terraform POC and presented it to leadership. Our VP of Infrastructure is concerned about vendor concentration with HashiCorp after their license change to BSL. The budget for this initiative is $350K and Terraform Enterprise pricing came in at $280K, leaving little room. Several senior engineers have Ansible experience from previous roles and have informally suggested it. Our CTO wants a decision by end of quarter.',
+    },
+    tips: [
+      'Don\'t position against Terraform -- position alongside it. Ask what Terraform covers and what it does not. The gaps are your entry.',
+      'Probe for Day 2 operations pain: "Once infrastructure is provisioned, what happens next? Who handles patching, drift, app deployment?"',
+      'Ask about their full infrastructure scope: cloud, on-prem, network devices, edge. Terraform has boundaries that Ansible fills.',
+    ],
+  },
+  {
+    id: 'discovery-post-acquisition',
+    title: 'OpenShift customer post-acquisition -- needs to standardize operations',
+    description: 'Just acquired a company running Chef on 800 servers. Need to unify automation tooling.',
+    category: 'discovery',
+    context: 'The prospect is an OpenShift customer that recently acquired a company with a completely different technology stack. Their VP of Infrastructure requested this meeting to discuss standardization options.',
+    mode: 'discovery',
+    discoveryLayers: {
+      surface: 'We recently completed an acquisition and are working on integrating the two organizations. We use OpenShift on our side and the acquired company has a different setup. We are exploring how to standardize our operations.',
+      mid: 'The acquired company runs 800 servers managed by Chef with a team of 5 who are all Chef specialists. Our side runs 2,400 servers on RHEL and OpenShift with no formal automation -- mostly bash scripts and manual processes. We now have two completely different operational models and neither is great. The Chef team is resistant to change, and our team does not know Chef. We are spending 15 hours per week just on cross-team coordination for changes that touch both environments.',
+      deep: 'The board expects full operational integration within 6 months -- this is a hard deadline tied to investor commitments. The acquired company\'s RHEL subscriptions expired and we are negotiating renewal through Red Hat. Our CFO wants to consolidate all automation under one platform to reduce licensing costs -- we currently pay $150K per year for Chef. The VP of Infrastructure prefers to standardize on Red Hat tooling since we are already a customer, but needs a credible migration plan to present to the acquired team.',
+    },
+    tips: [
+      'Ask about both sides: "What does automation look like today on your side vs. the acquired company?" Understanding both reveals the unification challenge.',
+      'Probe for the integration timeline and who is driving it. Acquisitions always have executive pressure and hard deadlines.',
+      'Understand the people dimension: who on the acquired team needs to be convinced? Tooling changes in acquisitions are as much about people as technology.',
+    ],
+  },
+  {
+    id: 'discovery-informal-awx',
+    title: 'RHEL customer running AWX informally -- exploring enterprise path',
+    description: 'Multiple teams adopted AWX without central IT approval. Ready to formalize automation.',
+    category: 'discovery',
+    context: 'The prospect is a RHEL customer where several teams have independently adopted AWX. Their Director of IT Operations wants to understand the path from AWX to a supported enterprise platform.',
+    mode: 'discovery',
+    discoveryLayers: {
+      surface: 'We have been using some Ansible automation across the organization. Different teams have set things up on their own. We are interested in understanding what an enterprise automation platform looks like.',
+      mid: 'We have 4 separate AWX instances run by different teams -- none of them are coordinated. There is no shared inventory, no consistent credential management, and no audit trail across instances. Our security team flagged this in their last review and said we need centralized governance within 90 days. Two of the AWX instances are running on unsupported versions with known CVEs. We have about 60 users across all instances running 500 jobs per day total.',
+      deep: 'Our VP of IT approved a $200K budget specifically for automation platform consolidation after the security review findings. We want to migrate all 4 AWX instances to a single supported platform in the next quarter. The IT Director has authority to make the tooling decision. We already have a Red Hat TAM and want to leverage the existing relationship. Our biggest concern is migrating existing job templates and workflows without disruption -- we need a clear migration plan before we can commit.',
+    },
+    tips: [
+      'AWX users already understand the value of Controller -- ask what they love about AWX and what they wish was better. Build on their existing experience.',
+      'Probe for the governance gap: "Who has visibility into what is running across all instances?" The security angle often unlocks urgency.',
+      'Ask about their AWX pain points: upgrades, CVE management, cross-instance coordination. These are exactly what AAP solves.',
     ],
   },
 ] as const;
@@ -183,4 +374,6 @@ export const CATEGORY_LABELS: Record<ScenarioCategory, string> = {
   competitive: 'vs. Competitive Tooling',
   value: 'Value & Business Justification',
   technical: 'Technical & Architecture',
+  pitch: 'Elevator Pitch',
+  discovery: 'Discovery Call',
 };
